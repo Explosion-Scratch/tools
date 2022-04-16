@@ -1,7 +1,14 @@
 [
-    {
-        "name": "Base64 Encode",
-        "description": "Encode Base64 to string",
-        ""
-    }
+	{
+		"name": "Base64 Encode",
+		"description": "Encode Base64 to string",
+		"id": "base64Encode",
+		"file": "base64Encode.svelte"
+	},
+	{
+		"name": "Blank page",
+		"description": "Just a blank page with no CSP.",
+		"id": "blank",
+		"file": "blankPage.svelte"
+	}
 ]
