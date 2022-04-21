@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 import preprocess from 'svelte-preprocess';
 import { resolve } from 'path';
 
@@ -10,6 +10,7 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
+		prerender: { default: true },
 		vite: {
 			resolve: {
 				alias: {
@@ -17,7 +18,8 @@ const config = {
 					$scripts: resolve('scripts'),
 					$routes: resolve('src/routes'),
 					$components: resolve('src/components'),
-					$tools: resolve('src/tools')
+					$tools: resolve('src/tools'),
+					$helpers: resolve('src/helpers')
 				}
 			}
 		}

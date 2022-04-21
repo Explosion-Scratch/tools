@@ -1,9 +1,9 @@
 [
 	{
-		"name": "Base64 Encode",
-		"description": "Encode Base64 to string",
-		"id": "base64Encode",
-		"file": "base64Encode.svelte"
+		"name": "Code Beautifier",
+		"description": "Minify and beautify JavaScript",
+		"id": "beautify",
+		"file": "beautify.svelte"
 	},
 	{
 		"name": "Blank page",
