@@ -12,6 +12,7 @@ const config = {
 		adapter: adapter(),
 		prerender: { default: true },
 		vite: {
+			optimizeDeps: { exclude: ['codejar'] },
 			resolve: {
 				alias: {
 					$public: resolve('public'),

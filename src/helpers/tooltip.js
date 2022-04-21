@@ -1,4 +1,5 @@
-export default function tooltip(node, params) {
+export default async function tooltip(node, params) {
+	await until(() => window.tippy);
 	let tip = window.tippy(node, {
 		// arrow: roundArrow,
 		placement: 'top',
@@ -13,4 +14,15 @@ export default function tooltip(node, params) {
 			tip.destroy();
 		}
 	};
+}
+
+function until(cb, wait) {
+	return new Promise((resolve) => {
+		let int = setInterval(() => {
+			if (cb()) {
+				clearInterval(int);
+				resolve(cb());
+			}
+		}, wait);
+	});
 }

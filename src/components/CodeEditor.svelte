@@ -8,19 +8,18 @@
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 	export let code = '';
-	import { CodeJar } from 'codejar';
-	import { withLineNumbers } from 'codejar/linenumbers';
 	import Prism from 'prismjs';
 	export let id = Math.random().toString(36).slice(2);
 
 	id = `code_editor_${id}`;
 
-	export function codedit(node, { code, autofocus = false, loc = false, ...options }) {
+	async function codedit(node, { code, autofocus = false, loc = false, ...options }) {
+		const { CodeJar } = await import('https://cdn.jsdelivr.net/npm/codejar@3.6.0/codejar.min.js');
 		const hl = function (el) {
 			let lang = options.language?.toLowerCase() || 'javascript';
 			el.innerHTML = Prism.highlight(el.textContent, Prism.languages[lang], lang);
 		};
-		const highlight = loc ? withLineNumbers(hl) : hl;
+		const highlight = hl;
 
 		const editor = CodeJar(node, highlight, options);
 
