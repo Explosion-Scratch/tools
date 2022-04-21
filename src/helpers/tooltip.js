@@ -17,6 +17,9 @@ export default async function tooltip(node, params) {
 }
 
 function until(cb, wait) {
+	if (cb()) {
+		return cb();
+	}
 	return new Promise((resolve) => {
 		let int = setInterval(() => {
 			if (cb()) {

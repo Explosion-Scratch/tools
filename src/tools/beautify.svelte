@@ -29,6 +29,7 @@
 		};
 	});
 	async function min() {
+		await until(() => window.Terser);
 		try {
 			let out = await window.Terser.minify(code);
 			// Basically using prettier as a syntax checker here
@@ -42,7 +43,8 @@
 			notifications.show("Couldn't minify code");
 		}
 	}
-	function format() {
+	async function format() {
+		await until(() => window.prettier);
 		try {
 			code = window.prettier.format(code, {
 				parser: 'babel',
@@ -95,6 +97,19 @@
 			}, 0);
 		}
 		notifications.show(`Saved ${filename}`);
+	}
+	function until(cb, wait) {
+		if (cb()) {
+			return cb();
+		}
+		return new Promise((resolve) => {
+			let int = setInterval(() => {
+				if (cb()) {
+					clearInterval(int);
+					resolve(cb());
+				}
+			}, wait);
+		});
 	}
 </script>
 

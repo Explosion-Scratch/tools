@@ -1,7 +1,3 @@
-<script context="module">
-	export const prerender = false;
-</script>
-
 <script>
 	// npm i -D codejar prismjs
 	// Use on:codeUpdate={({detail: code, target}) => console.log("Code updated to ", code, "Element: ", target)}
