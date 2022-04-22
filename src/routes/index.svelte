@@ -3,8 +3,10 @@
 	import tools from '../tools.json';
 	import tooltip from '$helpers/tooltip';
 	import TippyStyles from '$components/TippyStyles.svelte';
+	import CoolBackground from '$components/CoolBackground.svelte';
 </script>
 
+<CoolBackground />
 <TippyStyles />
 
 <h2 class="title">Tools</h2>
@@ -58,6 +60,7 @@
 		margin: 3rem;
 		place-items: center;
 		.tool {
+			background: #fff5;
 			transition: transform 0.3s ease-out;
 			place-self: center;
 			padding: 0.5rem 1rem;
