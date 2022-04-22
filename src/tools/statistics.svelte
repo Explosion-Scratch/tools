@@ -20,6 +20,9 @@
 
 	$: error = data.some(isNaN) ? 'Invalid data' : '';
 	$: results = (() => {
+		if (!math) {
+			return;
+		}
 		if (data.some(isNaN)) {
 			return (error = 'Invalid data');
 		} else {
@@ -56,7 +59,7 @@
 <h2>Statistics calculator</h2>
 <textarea bind:value={val} placeholder="Comma or space seperated list of numbers" />
 
-{#if !Object.keys(results).length || error}
+{#if !results || !Object.keys(results).length || error}
 	<span class="nothing">{error || 'No data given'}</span>
 {:else}
 	{#each Object.entries(results) as [type, result]}

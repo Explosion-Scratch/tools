@@ -12,7 +12,7 @@
 
 <main class="container">
 	{#each tools as tool}
-		<div class="tool" on:click={() => goto(tool.id, true)}>
+		<div class="tool" on:click={() => goto(tool.id)}>
 			<h2 id="title">{tool.name}</h2>
 			<span id="description">{tool.description}</span>
 			<a
