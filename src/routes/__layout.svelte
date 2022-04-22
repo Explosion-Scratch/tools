@@ -26,6 +26,7 @@
 <Nav />
 
 <slot />
+<svelte:head><base href="/tools/" /></svelte:head>
 
 <style>
 	:global(html, body, .reset) {
