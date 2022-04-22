@@ -2,101 +2,19 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="description" content="" />
-		<link rel="icon" href="/tools/favicon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta http-equiv="content-security-policy" content=""><script src="https://unpkg.com/@popperjs/core@2" data-svelte="svelte-19lgixc"></script><script src="https://unpkg.com/tippy.js@6" data-svelte="svelte-19lgixc"></script><style global data-svelte="svelte-19lgixc">:global(.tippy-box[data-theme~='light']) {
-			color: #26323d;
-			font-family: monospace;
-			box-shadow: 0 0 20px 4px rgba(154, 161, 177, 0.15), 0 4px 80px -8px rgba(36, 40, 47, 0.25),
-				0 4px 4px -2px rgba(91, 94, 105, 0.15);
-			background-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light'][data-placement^='top']) > :global(.tippy-arrow:before) {
-			border-top-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light'][data-placement^='bottom']) > :global(.tippy-arrow:before) {
-			border-bottom-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light'][data-placement^='left']) > :global(.tippy-arrow:before) {
-			border-left-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light'][data-placement^='right']) > :global(.tippy-arrow:before) {
-			border-right-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light']) > :global(.tippy-backdrop) {
-			background-color: #fff;
-		}
-		:global(.tippy-box[data-theme~='light']) > :global(.tippy-svg-arrow) {
-			fill: #fff;
-		}
-	</style><base href="/tools/" data-svelte="svelte-qfjf5n">
-	<link rel="stylesheet" href="/tools/_app/assets/pages/__layout.svelte-f63b4437.css">
-	<link rel="stylesheet" href="/tools/_app/assets/pages/index.svelte-649a7ed1.css">
-	<link rel="modulepreload" href="/tools/_app/start-cc429c28.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/index-d503e6f5.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/index-ffd8c7ff.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/preload-helper-8dd09053.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/singletons-d1fb5791.js">
-	<link rel="modulepreload" href="/tools/_app/pages/__layout.svelte-9134c734.js">
-	<link rel="modulepreload" href="/tools/_app/pages/index.svelte-4d670f50.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/tools-e8f7e206.js">
-	<link rel="modulepreload" href="/tools/_app/chunks/TippyStyles-cb1a82ad.js">
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<base href="/tools/" />
+		<title>Svelte app</title>
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22256%22 height=%22256%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232ec7ce%22></rect><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2276%22>😄</text></svg>"
+		/>
+		<link rel="stylesheet" href="global.css" />
+		<link rel="stylesheet" href="build/bundle.css" />
+
+		<script defer src="build/bundle.js"></script>
 	</head>
-	<body>
-		<div>
 
-
-<div id="nav" class="svelte-1ny6qk1"><a href="/tools/" sveltekit:prefetch alt="Home" class="svelte-1ny6qk1"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--ph svelte-1ny6qk1" width="32" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 256"><path fill="currentColor" d="M208 222h-48a14 14 0 0 1-14-14v-48a2 2 0 0 0-2-2h-32a2 2 0 0 0-2 2v48a14 14 0 0 1-14 14H48a14.3 14.3 0 0 1-9.9-4.1A14.1 14.1 0 0 1 34 208v-92.5a13.9 13.9 0 0 1 4.6-10.3l80-72.8a14.1 14.1 0 0 1 18.8 0l80 72.8a13.9 13.9 0 0 1 4.6 10.3V208a14 14 0 0 1-14 14Zm-96-76h32a14 14 0 0 1 14 14v48a2 2 0 0 0 2 2h48a2.1 2.1 0 0 0 2-2v-92.5a1.8 1.8 0 0 0-.6-1.4l-80.1-72.8a1.9 1.9 0 0 0-2.6 0l-80 72.8a1.6 1.6 0 0 0-.7 1.4V208a2.1 2.1 0 0 0 2 2h48a2 2 0 0 0 2-2v-48a14 14 0 0 1 14-14Z"></path></svg></a></div>
-
-
-
-<h2 class="title svelte-8gdlvd">Tools</h2>
-<span id="desc" class="svelte-8gdlvd">Tools that I made because I wanted to. I might add more sometime.</span>
-
-<main class="container svelte-8gdlvd"><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Code Beautifier</h2>
-			<span id="description" class="svelte-8gdlvd">Minify and beautify JavaScript</span>
-			<a href="/tools/beautify" sveltekit:reload alt="Code Beautifier link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Statistics calculator</h2>
-			<span id="description" class="svelte-8gdlvd">Do common math operations on lists of numbers</span>
-			<a href="/tools/statistics" sveltekit:reload alt="Statistics calculator link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Blank page</h2>
-			<span id="description" class="svelte-8gdlvd">Just a blank page with no CSP.</span>
-			<a href="/tools/blank" sveltekit:reload alt="Blank page link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Emoji picker</h2>
-			<span id="description" class="svelte-8gdlvd">Easily search and find emojis!</span>
-			<a href="/tools/emojis" sveltekit:reload alt="Emoji picker link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Dictionary</h2>
-			<span id="description" class="svelte-8gdlvd">Search and define words in seconds!</span>
-			<a href="/tools/dictionary" sveltekit:reload alt="Dictionary link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div><div class="tool svelte-8gdlvd"><h2 id="title" class="svelte-8gdlvd">Morse Code</h2>
-			<span id="description" class="svelte-8gdlvd">Encrypt and decrypt morse code</span>
-			<a href="/tools/morse" sveltekit:reload alt="Morse Code link" class="link svelte-8gdlvd"><div class="text svelte-8gdlvd">View</div></a>
-		</div>
-</main>
-
-
-
-		<script type="module" data-hydrate="h9y5lu">
-		import { start } from "/tools/_app/start-cc429c28.js";
-		start({
-			target: document.querySelector('[data-hydrate="h9y5lu"]').parentNode,
-			paths: {"base":"/tools","assets":"/tools"},
-			session: {},
-			route: true,
-			spa: false,
-			trailing_slash: "never",
-			hydrate: {
-				status: 200,
-				error: null,
-				nodes: [
-					import("/tools/_app/pages/__layout.svelte-9134c734.js"),
-						import("/tools/_app/pages/index.svelte-4d670f50.js")
-				],
-				params: {},
-				routeId: ""
-			}
-		});
-	</script></div>
-	</body>
+	<body></body>
 </html>
