@@ -21,10 +21,13 @@
     "@sveltejs/kit": "next",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
+    "bijou.js": "^8.2.4",
     "codejar": "^3.6.0",
+    "emojilib": "^3.0.6",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-svelte3": "^3.2.1",
+    "flexsearch": "^0.7.21",
     "mathjs": "^10.5.0",
     "prettier": "^2.5.1",
     "prettier-plugin-svelte": "^2.5.0",
@@ -34,6 +37,7 @@
     "svelte-preprocess": "^4.10.1",
     "terser": "^5.12.1",
     "tslib": "^2.3.1",
+    "twemoji": "^14.0.2",
     "typescript": "~4.6.2"
   }
 }

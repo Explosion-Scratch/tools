@@ -16,5 +16,11 @@
 		"description": "Just a blank page with no CSP.",
 		"id": "blank",
 		"file": "blankPage.svelte"
+	},
+	{
+		"name": "Emoji picker",
+		"description": "Easily search and find emojis!",
+		"id": "emojis",
+		"file": "emojiPicker.svelte"
 	}
 ]

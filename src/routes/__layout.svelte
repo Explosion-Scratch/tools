@@ -1,7 +1,7 @@
 <slot />
 
 <style>
-	:global(*) {
+	:global(html, body, .reset) {
 		margin: 0;
 		padding: 0;
 		box-sizing: border-box;
