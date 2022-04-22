@@ -22,5 +22,11 @@
 		"description": "Easily search and find emojis!",
 		"id": "emojis",
 		"file": "emojiPicker.svelte"
+	},
+	{
+		"name": "Dictionary",
+		"description": "Search and define words in seconds!",
+		"id": "dictionary",
+		"file": "dictionary.svelte"
 	}
 ]
