@@ -51,6 +51,8 @@
 
 <style>
 	#notifications_container {
+		font-family: 'Work Sans', Montserrat, Roboto, 'Gill Sans', 'Gill Sans MT', Calibri,
+			'Trebuchet MS', sans-serif;
 		position: fixed;
 		right: 50%;
 		bottom: 1rem;
