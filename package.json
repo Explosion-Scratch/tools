@@ -23,6 +23,7 @@
     "@typescript-eslint/parser": "^5.10.1",
     "bijou.js": "^8.2.4",
     "codejar": "^3.6.0",
+    "crypto-js": "^4.1.1",
     "emojilib": "^3.0.6",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",

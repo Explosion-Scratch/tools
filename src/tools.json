@@ -34,5 +34,11 @@
 		"description": "Encrypt and decrypt morse code",
 		"id": "morse",
 		"file": "morse.svelte"
+	},
+	{
+		"name": "Hash calculator",
+		"description": "Calculate MD5, SHA, and many other hashes of a string",
+		"id": "hash",
+		"file": "hashing.svelte"
 	}
 ]
