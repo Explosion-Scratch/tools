@@ -7,13 +7,13 @@ const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
 	preprocess: preprocess(),
-
 	kit: {
 		paths: { base: '/tools' },
 		adapter: adapter(),
 		prerender: { default: true },
 		vite: {
 			optimizeDeps: { exclude: ['codejar'] },
+			mode: 'production',
 			resolve: {
 				alias: {
 					$public: resolve('public'),
