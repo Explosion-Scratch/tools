@@ -9,6 +9,7 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
+		paths: { base: '/tools' },
 		adapter: adapter(),
 		prerender: { default: true },
 		vite: {

@@ -12,13 +12,13 @@
 
 <main class="container">
 	{#each tools as tool}
-		<div class="tool" on:click={() => goto(tool.id)}>
+		<div class="tool" on:click={() => goto(`/tools/${tool.id}`, false)}>
 			<h2 id="title">{tool.name}</h2>
 			<span id="description">{tool.description}</span>
 			<a
-				use:tooltip={{ content: `/${tool.id}`, theme: 'light' }}
-				href={tool.id}
-				sveltekit:prefetch
+				use:tooltip={{ content: `/tools/${tool.id}`, theme: 'light' }}
+				href={`/tools/${tool.id}`}
+				sveltekit:reload
 				alt={`${tool.name} link`}
 				class="link"
 			>

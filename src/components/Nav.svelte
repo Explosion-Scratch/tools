@@ -11,7 +11,7 @@
 
 {#if !disallowed.includes(path)}
 	<div id="nav">
-		<a href="/" sveltekit:prefetch alt="Home">
+		<a href="/tools/" sveltekit:prefetch alt="Home">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
