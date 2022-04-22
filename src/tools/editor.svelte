@@ -8,26 +8,36 @@
 	export let language = 'javascript';
 	export let id = Math.random().toString(36).slice(2);
 	id = `code_editor_`;
-	onMount(() => {
+	onMount(() => {});
+
+	function codeEdit(container, { code: _code, language, options }) {
 		const hl = function (el) {
 			let lang = language?.toLowerCase() || 'javascript';
 			el.innerHTML = Prism.highlight(el.textContent, Prism.languages[lang], lang);
 		};
-		editor = new CodeJar(container.querySelector(`#${id}`), hl);
-
-		function update({ code, options = {} }) {
-			if (code !== editor.toString()) {
+		editor = new CodeJar(container, hl);
+		editor.onUpdate((newCode) => {
+			console.log('Editor updated');
+			code = newCode;
+		});
+		updateEditor({ _code, options });
+		function updateEditor({ _code, options = {} }) {
+			if (_code !== editor.toString()) {
 				editor.updateOptions(options);
-				editor.updateCode(code);
+				editor.updateCode(_code);
 			}
 		}
 
-		update({ code, options });
-	});
+		return {
+			update({ code, options }) {
+				updateEditor({ _code: code, options });
+			}
+		};
+	}
 </script>
 
 <div id="code_editor_container" bind:this={container}>
-	<div {id} />
+	<div {id} use:codeEdit={{ code, options, language }} />
 </div>
 <svelte:head>
 	<style>
@@ -223,5 +233,11 @@
 <style>
 	#code_editor_container {
 		font-family: 'Fira Code', 'Courier New', Courier, monospace;
+		padding: 0;
+		margin: 0;
+	}
+	:global([id*='code_editor_']) {
+		padding: 0;
+		margin: 0;
 	}
 </style>

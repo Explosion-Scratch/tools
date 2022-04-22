@@ -1,11 +1,19 @@
 <script>
-	import C from '$components/CodeEditor.svelte';
+	import C from './editor.svelte';
 	import Toast from '$components/ToastContainer.svelte';
 	import notifications from '$helpers/toast.js';
 	import TippyStyles from '$components/TippyStyles.svelte';
 	import tooltip from '$helpers/tooltip.js';
 	import shortcuts from '$helpers/shortcuts.js';
 
+	let actions = new Proxy(
+		{},
+		{
+			get() {
+				return () => {};
+			}
+		}
+	);
 	let code = `
 	/*
 	Keyboard shortcuts:
@@ -22,95 +30,88 @@
 		.join('\n');
 
 	import { onMount } from 'svelte';
+
+	const codeUpdate = ({ code: newCode }) => {
+		code = newCode;
+	};
+
 	onMount(() => {
+		codeUpdate({ code });
 		window.onpaste = (e) => {
 			e.preventDefault();
-			code = e.clipboardData.getData('text/plain');
+			codeUpdate({ code: e.clipboardData.getData('text/plain') });
 		};
+		async function min() {
+			try {
+				let out = await window.Terser.minify(code);
+				// Basically using prettier as a syntax checker here
+				window.prettier.format(code, {
+					parser: 'babel',
+					plugins: window.prettierPlugins
+				});
+
+				codeUpdate({ code: out.code });
+			} catch (e) {
+				notifications.show("Couldn't minify code");
+			}
+		}
+		actions = { format, min, copy, updated, download };
+		async function format() {
+			try {
+				codeUpdate({
+					code: window.prettier.format(code, {
+						parser: 'babel',
+						plugins: window.prettierPlugins
+					})
+				});
+				notifications.show('Beautified');
+			} catch (e) {
+				notifications.show("Couldn't beautify code");
+			}
+		}
+		function updated({ detail: { detail } }) {
+			codeUpdate({ code: detail });
+		}
+		function copy() {
+			if (window.getSelection().toString().trim()?.length) {
+				const a = () => notifications.show('Copied selection');
+				navigator.clipboard.writeText(window.getSelection().toString()).then(a, () => {
+					prompt('Copy the code below: ', window.getSelection().toString());
+					a();
+				});
+				return;
+			}
+			let text = code;
+			navigator.clipboard.writeText(text).then(n, () => {
+				prompt('Copy the code below: ', text);
+				n();
+			});
+
+			function n() {
+				notifications.show(`Copied code!`);
+			}
+		}
+		function download(data, filename, type) {
+			var file = new Blob([data], { type: type });
+			if (window.navigator.msSaveOrOpenBlob)
+				// IE10+
+				window.navigator.msSaveOrOpenBlob(file, filename);
+			else {
+				// Others
+				var a = document.createElement('a'),
+					url = URL.createObjectURL(file);
+				a.href = url;
+				a.download = filename;
+				document.body.appendChild(a);
+				a.click();
+				setTimeout(function () {
+					document.body.removeChild(a);
+					window.URL.revokeObjectURL(url);
+				}, 0);
+			}
+			notifications.show(`Saved ${filename}`);
+		}
 	});
-	async function min() {
-		await until(() => window.Terser);
-		try {
-			let out = await window.Terser.minify(code);
-			// Basically using prettier as a syntax checker here
-			window.prettier.format(code, {
-				parser: 'babel',
-				plugins: window.prettierPlugins
-			});
-
-			code = out.code;
-		} catch (e) {
-			notifications.show("Couldn't minify code");
-		}
-	}
-	async function format() {
-		await until(() => window.prettier);
-		try {
-			code = window.prettier.format(code, {
-				parser: 'babel',
-				plugins: window.prettierPlugins
-			});
-			notifications.show('Beautified');
-		} catch (e) {
-			notifications.show("Couldn't beautify code");
-		}
-	}
-	function updated({ detail: { detail } }) {
-		code = detail;
-	}
-	function copy() {
-		if (window.getSelection().toString().trim()?.length) {
-			const a = () => notifications.show('Copied selection');
-			navigator.clipboard.writeText(window.getSelection().toString()).then(a, () => {
-				prompt('Copy the code below: ', window.getSelection().toString());
-				a();
-			});
-			return;
-		}
-		let text = code;
-		navigator.clipboard.writeText(text).then(n, () => {
-			prompt('Copy the code below: ', text);
-			n();
-		});
-
-		function n() {
-			notifications.show(`Copied code!`);
-		}
-	}
-	function download(data, filename, type) {
-		console.log('Downloading ', { data, filename, type });
-		var file = new Blob([data], { type: type });
-		if (window.navigator.msSaveOrOpenBlob)
-			// IE10+
-			window.navigator.msSaveOrOpenBlob(file, filename);
-		else {
-			// Others
-			var a = document.createElement('a'),
-				url = URL.createObjectURL(file);
-			a.href = url;
-			a.download = filename;
-			document.body.appendChild(a);
-			a.click();
-			setTimeout(function () {
-				document.body.removeChild(a);
-				window.URL.revokeObjectURL(url);
-			}, 0);
-		}
-		notifications.show(`Saved ${filename}`);
-	}
-	function until(cb, wait) {
-		if (cb()) {
-			return cb();
-		}
-		return new Promise((resolve) => {
-			let int = setInterval(() => {
-				if (cb()) {
-					clearInterval(int);
-					resolve(cb());
-				}
-			}, wait);
-		});
-	}
 </script>
 
 <TippyStyles />
@@ -122,11 +123,11 @@
 </svelte:head>
 
 <Toast />
-<C {code} on:change={updated} />
+<C bind:code on:change={actions.updated} />
 <div class="buttons">
 	<button
 		use:shortcuts={{ control: true, code: 'KeyM' }}
-		on:click={min}
+		on:click={actions.min}
 		alt="Minify"
 		use:tooltip={{ content: 'Minify', placement: 'left' }}
 	>
@@ -149,7 +150,7 @@
 	<button
 		use:shortcuts={{ control: true, code: 'Enter' }}
 		use:shortcuts={{ control: true, code: 'KeyB' }}
-		on:click={format}
+		on:click={actions.format}
 		alt="Beautify"
 		use:tooltip={{ content: 'Beautify', placement: 'left' }}
 	>
@@ -172,7 +173,7 @@
 	<button
 		class="sm"
 		use:shortcuts={{ control: true, code: 'KeyC' }}
-		on:click={copy}
+		on:click={actions.copy}
 		alt="Copy"
 		use:tooltip={{ content: 'Copy', placement: 'left' }}
 	>
@@ -195,7 +196,7 @@
 	<button
 		class="sm"
 		use:shortcuts={{ control: true, code: 'KeyS' }}
-		on:click={() => download('code', 'code.js', 'application/javascript')}
+		on:click={() => actions.download(code, 'code.js', 'application/javascript')}
 		alt="Save"
 		use:tooltip={{ content: 'Save', placement: 'left' }}
 	>
@@ -218,7 +219,7 @@
 	<button
 		class="sm"
 		use:shortcuts={{ control: true, code: 'Escape' }}
-		on:click={() => (code = '')}
+		on:click={() => codeUpdate({ code: '' })}
 		alt="Clear"
 		use:tooltip={{ content: 'Clear', placement: 'left' }}
 	>

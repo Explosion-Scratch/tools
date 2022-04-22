@@ -6,6 +6,12 @@
 		"file": "beautify.svelte"
 	},
 	{
+		"name": "Editor",
+		"description": "Editor test",
+		"id": "editor",
+		"file": "editor.svelte"
+	},
+	{
 		"name": "Blank page",
 		"description": "Just a blank page with no CSP.",
 		"id": "blank",
