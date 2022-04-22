@@ -14,6 +14,8 @@ const config = {
 		vite: {
 			optimizeDeps: { exclude: ['codejar'] },
 			mode: 'production',
+			// TO ANYONE READING THIS FILE: MAKE SURE YOU HAVE THAT NEXT LINE OTHERWISE GITHUB PAGES WONT WORK. GITHUB PAGES DOESN"T ALLOW FOLDERS STARTING WITH "_"
+			appDir: 'internal',
 			resolve: {
 				alias: {
 					$public: resolve('public'),
