@@ -28,5 +28,11 @@
 		"description": "Search and define words in seconds!",
 		"id": "dictionary",
 		"file": "dictionary.svelte"
+	},
+	{
+		"name": "Morse Code",
+		"description": "Encrypt and decrypt morse code",
+		"id": "morse",
+		"file": "morse.svelte"
 	}
 ]
