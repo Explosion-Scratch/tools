@@ -1,5 +1,5 @@
 <script>
-	import C from './editor.svelte';
+	import C from '$components/CodeEditor.svelte';
 	import Toast from '$components/ToastContainer.svelte';
 	import notifications from '$helpers/toast.js';
 	import TippyStyles from '$components/TippyStyles.svelte';

@@ -6,10 +6,10 @@
 		"file": "beautify.svelte"
 	},
 	{
-		"name": "Editor",
-		"description": "Editor test",
-		"id": "editor",
-		"file": "editor.svelte"
+		"name": "Statistics calculator",
+		"description": "Calculate the standard deviation, mean, mode, etc of a list of numbers.",
+		"id": "statistics",
+		"file": "statistics.svelte"
 	},
 	{
 		"name": "Blank page",
