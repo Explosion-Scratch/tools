@@ -80,6 +80,7 @@
 
 <style>
 	.container {
+		padding: 10px;
 		display: flex;
 		align-items: center;
 		flex-direction: column;

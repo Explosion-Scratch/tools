@@ -90,7 +90,7 @@
 	}
 	h2 {
 		text-align: center;
-		padding-top: 20vh;
+		padding-top: 10vh;
 	}
 	textarea {
 		min-height: 100px;

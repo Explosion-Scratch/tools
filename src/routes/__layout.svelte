@@ -1,3 +1,9 @@
+<script>
+	import Nav from '$components/Nav.svelte';
+</script>
+
+<Nav />
+
 <slot />
 
 <style>
@@ -5,6 +11,9 @@
 		margin: 0;
 		padding: 0;
 		box-sizing: border-box;
+	}
+	:global(::selection) {
+		background: #0001;
 	}
 	:global(html) {
 		font-family: 'Work Sans', Roboto, Montserrat, 'Lucida Sans', 'Lucida Sans Regular',

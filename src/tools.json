@@ -7,7 +7,7 @@
 	},
 	{
 		"name": "Statistics calculator",
-		"description": "Calculate the standard deviation, mean, mode, etc of a list of numbers.",
+		"description": "Do common math operations on lists of numbers",
 		"id": "statistics",
 		"file": "statistics.svelte"
 	},
