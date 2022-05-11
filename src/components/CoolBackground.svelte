@@ -63,6 +63,7 @@
 		box-shadow: 2px 2px 4px #0004;
 		opacity: 0.1;
 		cursor: pointer;
+		z-index: -100;
 		will-change: opacity;
 		transition: opacity 0.1s ease, transform 0.1s ease;
 	}

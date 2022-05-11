@@ -60,6 +60,7 @@
 		margin: 3rem;
 		place-items: center;
 		.tool {
+			z-index: 100;
 			background: #fff5;
 			transition: transform 0.3s ease-out;
 			place-self: center;
