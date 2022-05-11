@@ -8,14 +8,25 @@
 		let { default: component } = await import(`../tools/${found.file.split('.')[0]}.svelte`);
 		return {
 			props: {
-				component
+				component,
+				tool: found
 			}
 		};
 	}
 </script>
 
 <script>
+	import SEO from '$components/SEO.svelte';
 	export let component = null;
+	export let tool = {};
 </script>
 
+<svelte:head>
+	<SEO
+		title={tool.title}
+		keywords="code,javascript,{tool.keywords || tool.id}"
+		site="Explosion's Tools"
+		color="#a7c9d9"
+	/>
+</svelte:head>
 <svelte:component this={component} />
