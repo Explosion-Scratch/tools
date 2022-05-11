@@ -1,4 +1,4 @@
-import{a6 as S,V as _,C as $}from"./index-5ae6d557.js";function w(t){const o=t-1;return o*o*o+1}function M(t){return--t*t*t*t*t+1}/*! *****************************************************************************
+import{a7 as S,W as _,C as $}from"./index-6cf2f089.js";function w(t){const o=t-1;return o*o*o+1}function M(t){return--t*t*t*t*t+1}/*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
 Permission to use, copy, modify, and/or distribute this software for any
