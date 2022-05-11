@@ -15,7 +15,7 @@
 
 	onMount(() => {
 		bookmarklets = fetch(
-			'https://gist.githubusercontent.com/Explosion-Scratch/c853c40e4c4c0b7ad74f7d8644c238ba/raw/4857498f38065990161f4749fcdfe9bc75901bc5/Bookmarklets.md'
+			'https://gist.githubusercontent.com/Explosion-Scratch/c853c40e4c4c0b7ad74f7d8644c238ba/raw'
 		)
 			.then((r) => r.text())
 			.then((text) => {
