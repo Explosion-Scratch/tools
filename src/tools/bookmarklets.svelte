@@ -5,7 +5,7 @@
 	import js_hl from 'svelte-highlight/languages/javascript';
 	import tooltip from '$helpers/tooltip.js';
 	import confetti from 'canvas-confetti';
-
+	let searchQuery = '';
 	let bookmarklets;
 	import { fly, fade } from 'svelte/transition';
 
@@ -58,7 +58,14 @@
 		}
 		return code;
 	}
-
+	function filter(array, search) {
+		search = search.toLowerCase().trim();
+		return array.filter(
+			(i) =>
+				i.title?.toLowerCase().trim().includes(search) ||
+				i.description?.toLowerCase().trim().includes(search)
+		);
+	}
 	function popup(thing) {
 		POPUP.open = true;
 		POPUP = { ...POPUP, ...thing };
@@ -83,11 +90,13 @@
 	{:then b}
 		<h2 class="title">Bookmarklets</h2>
 		<span id="desc">Click on any of the bookmarklets to view more!</span>
+		<input type="text" id="search" bind:value={searchQuery} placeholder="Search..." />
 		<div class="bookmarklet_grid">
-			{#each b || [] as _}
+			{#each filter(b || [], searchQuery) as _}
 				<div
 					on:click={() => popup(_)}
 					class="bookmarklet"
+					transition:fly={{ y: 20, duration: 500 }}
 					style={`--first-color: hsla(${_.color}, 78%, 68%, 10%); --second-color: hsla(${
 						(_.color + 50) % 360
 					}, 78%, 68%, 10%);`}
@@ -227,7 +236,7 @@
 		text-align: center;
 		width: 100%;
 		display: block;
-		margin-bottom: 3rem;
+		margin-bottom: 0.5rem;
 	}
 	.container {
 		display: flex;
@@ -412,6 +421,35 @@
 					border: 1px dashed #0001;
 				}
 			}
+		}
+	}
+
+	#block {
+		z-index: -100;
+	}
+	.tool {
+		z-index: 100;
+	}
+	.bookmarklet_grid {
+		min-height: 70vh;
+		margin-top: 4rem;
+	}
+
+	input {
+		padding: 0.5rem 1rem;
+		width: 67vw;
+		margin-top: 1rem;
+		border: 1px solid #eee;
+		transition: box-shadow 0.2s ease;
+		&::placeholder {
+			color: #bbb;
+		}
+		&:hover {
+			box-shadow: rgb(0 0 0 / 16%) 0px 1px 4px;
+		}
+		&:focus {
+			box-shadow: rgb(0 0 0 / 5%) 0px 6px 24px 0px, rgb(0 0 0 / 8%) 0px 0px 0px 1px;
+			outline: none;
 		}
 	}
 </style>
