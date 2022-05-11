@@ -1,11 +1,11 @@
 {
   ".svelte-kit/runtime/client/start.js": {
-    "file": "start-9110ebbb.js",
+    "file": "start-0c93babd.js",
     "src": ".svelte-kit/runtime/client/start.js",
     "isEntry": true,
     "imports": [
-      "_index-070274e8.js",
-      "_index-fb52bf78.js",
+      "_index-5ae6d557.js",
+      "_index-d9c746fe.js",
       "_preload-helper-1dabcde2.js",
       "_singletons-d1fb5791.js"
     ],
@@ -17,40 +17,41 @@
     ]
   },
   "src/routes/__layout.svelte": {
-    "file": "pages/__layout.svelte-9a64838b.js",
+    "file": "pages/__layout.svelte-a0d6c958.js",
     "src": "src/routes/__layout.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ],
     "css": [
       "assets/pages/__layout.svelte-f63b4437.css"
     ]
   },
   ".svelte-kit/runtime/components/error.svelte": {
-    "file": "error.svelte-dd740e4f.js",
+    "file": "error.svelte-41e84315.js",
     "src": ".svelte-kit/runtime/components/error.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ]
   },
   "src/routes/[path].svelte": {
-    "file": "pages/_path_.svelte-b569a0ee.js",
+    "file": "pages/_path_.svelte-3c7f0214.js",
     "src": "src/routes/[path].svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
       "_preload-helper-1dabcde2.js",
-      "_index-070274e8.js",
-      "_tools-af0cf3a9.js"
+      "_index-5ae6d557.js",
+      "_tools-a59d1f99.js"
     ],
     "dynamicImports": [
       "src/tools/base64Encode.svelte",
       "src/tools/beautify.svelte",
       "src/tools/blankPage.svelte",
+      "src/tools/bookmarklets.svelte",
       "src/tools/dictionary.svelte",
       "src/tools/emojiPicker.svelte",
       "src/tools/hashing.svelte",
@@ -59,27 +60,28 @@
     ]
   },
   "src/routes/index.svelte": {
-    "file": "pages/index.svelte-6b887728.js",
+    "file": "pages/index.svelte-605c8f04.js",
     "src": "src/routes/index.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js",
+      "_index-5ae6d557.js",
       "_singletons-d1fb5791.js",
-      "_tools-af0cf3a9.js",
-      "_TippyStyles-46636d1a.js"
+      "_tools-a59d1f99.js",
+      "_tooltip-899db86d.js",
+      "_TippyStyles-a1a2a87b.js"
     ],
     "css": [
       "assets/pages/index.svelte-1e0094ae.css"
     ]
   },
-  "_index-070274e8.js": {
-    "file": "chunks/index-070274e8.js"
+  "_index-5ae6d557.js": {
+    "file": "chunks/index-5ae6d557.js"
   },
-  "_index-fb52bf78.js": {
-    "file": "chunks/index-fb52bf78.js",
+  "_index-d9c746fe.js": {
+    "file": "chunks/index-d9c746fe.js",
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ]
   },
   "_singletons-d1fb5791.js": {
@@ -88,61 +90,86 @@
   "_preload-helper-1dabcde2.js": {
     "file": "chunks/preload-helper-1dabcde2.js"
   },
-  "_tools-af0cf3a9.js": {
-    "file": "chunks/tools-af0cf3a9.js"
+  "_tools-a59d1f99.js": {
+    "file": "chunks/tools-a59d1f99.js"
   },
-  "_TippyStyles-46636d1a.js": {
-    "file": "chunks/TippyStyles-46636d1a.js",
+  "_tooltip-899db86d.js": {
+    "file": "chunks/tooltip-899db86d.js"
+  },
+  "_TippyStyles-a1a2a87b.js": {
+    "file": "chunks/TippyStyles-a1a2a87b.js",
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ]
   },
   "src/tools/base64Encode.svelte": {
-    "file": "chunks/base64Encode-8db58702.js",
+    "file": "chunks/base64Encode-de6243b7.js",
     "src": "src/tools/base64Encode.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ]
   },
   "src/tools/beautify.svelte": {
-    "file": "chunks/beautify-90e09865.js",
+    "file": "chunks/beautify-89d7b0fa.js",
     "src": "src/tools/beautify.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js",
-      "_ToastContainer-77bb0423.js",
-      "_TippyStyles-46636d1a.js",
-      "_index-fb52bf78.js"
+      "_index-5ae6d557.js",
+      "_ToastContainer-910eb6e0.js",
+      "_TippyStyles-a1a2a87b.js",
+      "_tooltip-899db86d.js",
+      "_index-d9c746fe.js",
+      "_index-cdbb486a.js"
     ],
     "css": [
       "assets/beautify-76460fd6.css"
     ]
   },
-  "_ToastContainer-77bb0423.js": {
-    "file": "chunks/ToastContainer-77bb0423.js",
+  "_ToastContainer-910eb6e0.js": {
+    "file": "chunks/ToastContainer-910eb6e0.js",
     "imports": [
-      "_index-070274e8.js",
-      "_index-fb52bf78.js"
+      "_index-5ae6d557.js",
+      "_index-d9c746fe.js",
+      "_index-cdbb486a.js"
     ],
     "css": [
       "assets/ToastContainer-b2ea7ee0.css"
     ]
   },
+  "_index-cdbb486a.js": {
+    "file": "chunks/index-cdbb486a.js",
+    "imports": [
+      "_index-5ae6d557.js"
+    ]
+  },
   "src/tools/blankPage.svelte": {
-    "file": "chunks/blankPage-cb0f9d39.js",
+    "file": "chunks/blankPage-9f77b4ea.js",
     "src": "src/tools/blankPage.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
+    ]
+  },
+  "src/tools/bookmarklets.svelte": {
+    "file": "chunks/bookmarklets-4b6969f2.js",
+    "src": "src/tools/bookmarklets.svelte",
+    "isDynamicEntry": true,
+    "imports": [
+      "_index-5ae6d557.js",
+      "_tooltip-899db86d.js",
+      "_index-cdbb486a.js"
+    ],
+    "css": [
+      "assets/bookmarklets-84dc1bca.css"
     ]
   },
   "src/tools/dictionary.svelte": {
-    "file": "chunks/dictionary-84a41826.js",
+    "file": "chunks/dictionary-d217a896.js",
     "src": "src/tools/dictionary.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js",
+      "_index-5ae6d557.js",
       "_bijou-106d2215.js"
     ],
     "css": [
@@ -153,50 +180,53 @@
     "file": "chunks/bijou-106d2215.js"
   },
   "src/tools/emojiPicker.svelte": {
-    "file": "chunks/emojiPicker-b1554439.js",
+    "file": "chunks/emojiPicker-9a67a0b8.js",
     "src": "src/tools/emojiPicker.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js",
-      "_TippyStyles-46636d1a.js",
-      "_ToastContainer-77bb0423.js",
+      "_index-5ae6d557.js",
+      "_TippyStyles-a1a2a87b.js",
+      "_ToastContainer-910eb6e0.js",
       "_bijou-106d2215.js",
-      "_index-fb52bf78.js"
+      "_tooltip-899db86d.js",
+      "_index-d9c746fe.js",
+      "_index-cdbb486a.js"
     ],
     "css": [
       "assets/emojiPicker-d0a98c5f.css"
     ]
   },
   "src/tools/hashing.svelte": {
-    "file": "chunks/hashing-2a1292cf.js",
+    "file": "chunks/hashing-ab4fbda8.js",
     "src": "src/tools/hashing.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js",
-      "_ToastContainer-77bb0423.js",
-      "_index-fb52bf78.js"
+      "_index-5ae6d557.js",
+      "_ToastContainer-910eb6e0.js",
+      "_index-d9c746fe.js",
+      "_index-cdbb486a.js"
     ],
     "css": [
       "assets/hashing-6eab339b.css"
     ]
   },
   "src/tools/morse.svelte": {
-    "file": "chunks/morse-6acfe6d7.js",
+    "file": "chunks/morse-48b47fcc.js",
     "src": "src/tools/morse.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ],
     "css": [
       "assets/morse-ff737053.css"
     ]
   },
   "src/tools/statistics.svelte": {
-    "file": "chunks/statistics-d765f6a4.js",
+    "file": "chunks/statistics-1550acb1.js",
     "src": "src/tools/statistics.svelte",
     "isDynamicEntry": true,
     "imports": [
-      "_index-070274e8.js"
+      "_index-5ae6d557.js"
     ],
     "css": [
       "assets/statistics-7a68c10b.css"
