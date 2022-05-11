@@ -15,7 +15,7 @@ const config = {
 		// TO ANYONE READING THIS FILE: MAKE SURE YOU HAVE THAT NEXT LINE OTHERWISE GITHUB PAGES WONT WORK. GITHUB PAGES DOESN"T ALLOW FOLDERS STARTING WITH "_"
 		appDir: 'internal',
 		vite: {
-			optimizeDeps: { exclude: ['codejar'] },
+			optimizeDeps: { exclude: ['codejar'], include: ['highlight.js', 'highlight.js/lib/core'] },
 			mode: 'production',
 			resolve: {
 				alias: {

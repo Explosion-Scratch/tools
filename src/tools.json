@@ -1,5 +1,11 @@
 [
 	{
+		"name": "Bookmarklets",
+		"description": "A collection of over 60 bookmarklets I made",
+		"id": "bookmarklets",
+		"file": "bookmarklets.svelte"
+	},
+	{
 		"name": "Code Beautifier",
 		"description": "Minify and beautify JavaScript",
 		"id": "beautify",
