@@ -1,5 +1,6 @@
 {
 	"yaml.schemas": {
 		"https://json.schemastore.org/github-workflow.json": "file:///workspace/explosiontools/.github/workflows/deploy.yml"
-	}
+	},
+	"conventionalCommits.scopes": ["code-editor"]
 }

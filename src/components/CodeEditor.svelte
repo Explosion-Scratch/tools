@@ -16,6 +16,7 @@
 			el.innerHTML = Prism.highlight(el.textContent, Prism.languages[lang], lang);
 		};
 		editor = new CodeJar(container, hl);
+		window.CODEJAR_EDITOR = editor;
 		editor.onUpdate((newCode) => {
 			console.log('Editor updated');
 			code = newCode;

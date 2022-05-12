@@ -31,16 +31,27 @@
 
 	import { onMount } from 'svelte';
 
-	const codeUpdate = ({ code: newCode }) => {
-		code = newCode;
-	};
+	let codeUpdate = () => {};
 
 	onMount(() => {
-		codeUpdate({ code });
-		window.onpaste = (e) => {
-			e.preventDefault();
-			codeUpdate({ code: e.clipboardData.getData('text/plain') });
+		codeUpdate = ({ code: newCode, updateCursor = true, ...other }) => {
+			let cursor = {};
+			if (updateCursor) {
+				if (!window.CODEJAR_EDITOR && window.CODEJAR_EDITOR.save) {
+					return;
+				}
+				cursor = window.CODEJAR_EDITOR.save();
+			}
+			code = newCode;
+			if (updateCursor) {
+				console.log({ ...cursor, ...other });
+				window.CODEJAR_EDITOR.restore({ ...cursor, ...other });
+			}
 		};
+
+		console.log('Mounted');
+		// Fixes some weird error with svelte "error1"
+		codeUpdate({ code, updateCursor: false });
 		async function min() {
 			try {
 				let out = await window.Terser.minify(code);
@@ -56,13 +67,26 @@
 			}
 		}
 		actions = { format, min, copy, updated, download };
+		window.actions = actions;
+		console.log({ actions });
 		async function format() {
+			console.log('Formatting');
 			try {
+				let { start, end, dir } = window?.CODEJAR_EDITOR?.save();
+				if (start === undefined || end === undefined) {
+					throw new Error("Couldn't save cursor pos");
+				}
+				console.log({ start, end, dir, code });
+				let formatted = window.prettier.formatWithCursor(code, {
+					parser: 'babel',
+					plugins: window.prettierPlugins,
+					cursorOffset: start
+				});
+				console.log('Did stuff');
 				codeUpdate({
-					code: window.prettier.format(code, {
-						parser: 'babel',
-						plugins: window.prettierPlugins
-					})
+					code: formatted.formatted,
+					start: formatted.cursorOffset,
+					end: formatted.cursorOffset
 				});
 				notifications.show('Beautified');
 			} catch (e) {
@@ -112,9 +136,23 @@
 			notifications.show(`Saved ${filename}`);
 		}
 	});
+
+	async function paste(e) {
+		console.log(code, e, e.clipboardData.getData('text/plain'));
+		/\/\*([\s\S]*?)\*\/$/.test(code.replace(e.clipboardData.getData('text/plain'), '')) &&
+			(e.preventDefault(), codeUpdate({ code: e.clipboardData.getData('text/plain') }));
+
+		// await new Promise((r) => setTimeout(r, 100));
+		console.log('Formatting (paste ev)');
+		actions.format();
+		let offset = code.length;
+		setTimeout(() => window.CODEJAR_EDITOR.restore({ start: offset, end: offset }));
+		console.log('Set cursor at end', offset);
+	}
 </script>
 
 <TippyStyles />
+<svelte:window on:paste={paste} />
 <svelte:head>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.6.2/standalone.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.6.2/parser-babel.min.js"></script>

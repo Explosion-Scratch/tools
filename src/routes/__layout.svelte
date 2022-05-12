@@ -1,13 +1,13 @@
 <script>
 	import Nav from '$components/Nav.svelte';
 	import { onMount } from 'svelte';
-
+	let LISTENERS = {};
 	onMount(() => {
 		console.log('Layout mounted', window.onblur);
 		setInterval(e, 2000);
 		let blurred = false;
-		window.onfocus = () => ((blurred = false), e());
-		window.onblur = () => ((blurred = true), e());
+		LISTENERS.onfocus = () => ((blurred = false), e());
+		LISTENERS.onblur = () => ((blurred = true), e());
 
 		e();
 
@@ -28,6 +28,7 @@
 <Nav />
 
 <slot />
+<svelte:window on:blur={LISTENERS.onblur} on:focus={LISTENERS.onfocus} />
 <svelte:head>
 	<base href="/tools/" />
 	<meta charset="utf-8" />
