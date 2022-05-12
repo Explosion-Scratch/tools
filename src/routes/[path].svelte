@@ -23,7 +23,7 @@
 
 <svelte:head>
 	<SEO
-		title={tool.title}
+		title={tool.title || 'Tools'}
 		keywords="code,javascript,{tool.keywords || tool.id}"
 		site="Explosion's Tools"
 		color="#a7c9d9"

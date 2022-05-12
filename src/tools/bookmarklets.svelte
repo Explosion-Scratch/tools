@@ -438,6 +438,7 @@
 	input {
 		padding: 0.5rem 1rem;
 		width: 67vw;
+		max-width: 765px;
 		margin-top: 1rem;
 		border: 1px solid #eee;
 		transition: box-shadow 0.2s ease;
