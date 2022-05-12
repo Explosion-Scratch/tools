@@ -1,6 +1,6 @@
 {
   ".svelte-kit/runtime/client/start.js": {
-    "file": "start-96496960.js",
+    "file": "start-24596c10.js",
     "src": ".svelte-kit/runtime/client/start.js",
     "isEntry": true,
     "imports": [
@@ -38,7 +38,7 @@
     ]
   },
   "src/routes/[path].svelte": {
-    "file": "pages/_path_.svelte-9c095339.js",
+    "file": "pages/_path_.svelte-2ed6b413.js",
     "src": "src/routes/[path].svelte",
     "isEntry": true,
     "isDynamicEntry": true,
@@ -152,7 +152,7 @@
     ]
   },
   "src/tools/bookmarklets.svelte": {
-    "file": "chunks/bookmarklets-4f7745e1.js",
+    "file": "chunks/bookmarklets-96799c34.js",
     "src": "src/tools/bookmarklets.svelte",
     "isDynamicEntry": true,
     "imports": [
@@ -161,7 +161,7 @@
       "_index-051c2ec7.js"
     ],
     "css": [
-      "assets/bookmarklets-10a7113f.css"
+      "assets/bookmarklets-4f184758.css"
     ]
   },
   "src/tools/dictionary.svelte": {
