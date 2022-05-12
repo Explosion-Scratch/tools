@@ -6,6 +6,7 @@
 	import tooltip from '$helpers/tooltip.js';
 	import shortcuts from '$helpers/shortcuts.js';
 	import html2canvas from 'html2canvas';
+	import LZString from 'lz-string';
 
 	let actions = new Proxy(
 		{},
@@ -36,6 +37,7 @@
 	let codeUpdate = () => {};
 
 	onMount(() => {
+		console.log(LZString);
 		codeUpdate = ({ code: newCode, updateCursor = true, ...other }) => {
 			let cursor = {};
 			if (updateCursor) {
@@ -53,10 +55,16 @@
 
 		console.log('Mounted');
 		// Fixes some weird error with svelte "error1"
-		codeUpdate({ code, updateCursor: false });
+		codeUpdate({
+			code: LZString.decompressFromEncodedURIComponent(location.hash.replace(/^#/, '')) || code,
+			updateCursor: false
+		});
 		actions = { format, min, copy, updated, download, screenshot };
 		window.actions = actions;
 		console.log({ actions });
+		setInterval(() => {
+			location.hash = LZString.compressToEncodedURIComponent(code);
+		}, 100);
 
 		async function screenshot() {
 			document.body.classList.add('screenshot');

@@ -19,6 +19,7 @@ specifiers:
   highlight.js: ^11.5.1
   html2canvas: ^1.4.1
   less: ^4.1.2
+  lz-string: ^1.4.4
   mathjs: ^10.5.0
   prettier: ^2.5.1
   prettier-plugin-svelte: ^2.5.0
@@ -51,6 +52,7 @@ devDependencies:
   highlight.js: 11.5.1
   html2canvas: 1.4.1
   less: 4.1.2
+  lz-string: 1.4.4
   mathjs: 10.5.0
   prettier: 2.6.2
   prettier-plugin-svelte: 2.7.0_prettier@2.6.2+svelte@3.47.0
@@ -2247,6 +2249,11 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
+    dev: true
+
+  /lz-string/1.4.4:
+    resolution: {integrity: sha1-wNjq82BZ9wV5bh40SBHPTEmNOiY=}
+    hasBin: true
     dev: true
 
   /magic-string/0.25.9:
