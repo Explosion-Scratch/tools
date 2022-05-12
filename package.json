@@ -31,6 +31,7 @@
     "eslint-plugin-svelte3": "^3.2.1",
     "flexsearch": "^0.7.21",
     "highlight.js": "^11.5.1",
+    "html2canvas": "^1.4.1",
     "less": "^4.1.2",
     "mathjs": "^10.5.0",
     "prettier": "^2.5.1",

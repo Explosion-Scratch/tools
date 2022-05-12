@@ -5,6 +5,7 @@
 	import TippyStyles from '$components/TippyStyles.svelte';
 	import tooltip from '$helpers/tooltip.js';
 	import shortcuts from '$helpers/shortcuts.js';
+	import html2canvas from 'html2canvas';
 
 	let actions = new Proxy(
 		{},
@@ -23,6 +24,7 @@
 	Control + Enter:      Beautify code
 	Control + S:          Save code
 	Control + Escape:     Clear editor
+	Control + I:          Screenshot code (I for image)
 	*/`
 		.trim()
 		.split('\n')
@@ -52,6 +54,18 @@
 		console.log('Mounted');
 		// Fixes some weird error with svelte "error1"
 		codeUpdate({ code, updateCursor: false });
+		actions = { format, min, copy, updated, download, screenshot };
+		window.actions = actions;
+		console.log({ actions });
+
+		async function screenshot() {
+			document.body.classList.add('screenshot');
+			notifications.show('Screenshotting');
+			let canvas = await html2canvas(document.body);
+			canvas.toBlob((a) => window.open(URL.createObjectURL(a)), 'image/png');
+			document.body.classList.remove('screenshot');
+		}
+
 		async function min() {
 			try {
 				let out = await window.Terser.minify(code);
@@ -66,9 +80,7 @@
 				notifications.show("Couldn't minify code");
 			}
 		}
-		actions = { format, min, copy, updated, download };
-		window.actions = actions;
-		console.log({ actions });
+
 		async function format() {
 			console.log('Formatting');
 			try {
@@ -256,6 +268,29 @@
 	</button>
 	<button
 		class="sm"
+		use:shortcuts={{ control: true, code: 'KeyI' }}
+		on:click={() => actions.screenshot()}
+		alt="Screenshot"
+		use:tooltip={{ content: 'Screenshot', placement: 'left' }}
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			xmlns:xlink="http://www.w3.org/1999/xlink"
+			aria-hidden="true"
+			role="img"
+			class="iconify iconify--bx"
+			width="32"
+			height="32"
+			preserveAspectRatio="xMidYMid meet"
+			viewBox="0 0 24 24"
+			><path
+				fill="currentColor"
+				d="M19 14h-2v3h-3v2h3v3h2v-3h3v-2h-3zM4 19h3v-2H5v-2H3v3a1 1 0 0 0 1 1zM19 4a1 1 0 0 0-1-1h-3v2h2v2h2V4zM5 5h2V3H4a1 1 0 0 0-1 1v3h2V5zM3 9h2v4H3zm14 0h2v3h-2zM9 3h4v2H9zm0 14h3v2H9z"
+			/></svg
+		>
+	</button>
+	<button
+		class="sm"
 		use:shortcuts={{ control: true, code: 'Escape' }}
 		on:click={() => codeUpdate({ code: '' })}
 		alt="Clear"
@@ -279,7 +314,7 @@
 	</button>
 </div>
 
-<style>
+<style lang="less">
 	* {
 		transition: all 0.2s ease;
 	}
@@ -306,17 +341,45 @@
 		background: transparent;
 		border: none;
 		color: #666;
-	}
-	button svg {
-		width: 20px;
-		height: 20px;
-		cursor: pointer;
-	}
-	button:active {
-		transform: scale(0.9);
+		svg {
+			width: 20px;
+			height: 20px;
+			cursor: pointer;
+			&:active {
+				transform: scale(0.9);
+			}
+		}
 	}
 	.sm svg {
 		width: 15px;
 		height: 15px;
+	}
+
+	:global(.screenshot) {
+		:global(#code_editor_container [id*='code_editor_']) {
+			width: 100% !important;
+		}
+		:global(#code_editor_container) {
+			display: block;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			border: 1px solid #0001;
+			border-radius: 0.3rem;
+			width: 80vw;
+			height: 80vh;
+			box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+			background: #fff;
+		}
+		:global(body),
+		&:is(body) {
+			background: linear-gradient(
+				to right,
+				rgb(199, 210, 254),
+				rgb(254, 202, 202),
+				rgb(254, 249, 195)
+			);
+		}
 	}
 </style>

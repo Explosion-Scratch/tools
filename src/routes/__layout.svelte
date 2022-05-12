@@ -45,6 +45,9 @@
 				display: none !important;
 			}
 		}
+		.screenshot .hidden-print {
+			display: none !important;
+		}
 	</style>
 </svelte:head>
 
