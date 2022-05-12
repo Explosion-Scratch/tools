@@ -162,7 +162,7 @@
 
 <Toast />
 <C bind:code on:change={actions.updated} />
-<div class="buttons">
+<div class="buttons hidden-print">
 	<button
 		use:shortcuts={{ control: true, code: 'KeyM' }}
 		on:click={actions.min}

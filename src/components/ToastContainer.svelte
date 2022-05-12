@@ -32,7 +32,7 @@
 	});
 </script>
 
-<div id="notifications_container">
+<div id="notifications_container" class="hidden-print">
 	{#each notifs as notif (notif.id)}
 		<div
 			class="notification"
