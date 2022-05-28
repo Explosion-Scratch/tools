@@ -6,7 +6,9 @@
 
 		let found = tools.find((i) => i.id.toLowerCase() === id.toLowerCase());
 		if (!found) {
-			return {};
+			return {
+				tool: {}
+			};
 		}
 		console.log(found);
 		return {
@@ -32,8 +34,6 @@
 	afterNavigate(() => ($loading = false));
 
 	onMount(() => {
-		$loading = false;
-		console.log('Layout mounted', window.onblur);
 		setInterval(e, 2000);
 		let blurred = false;
 		LISTENERS.onfocus = () => ((blurred = false), e());
@@ -64,11 +64,11 @@
 <svelte:window on:blur={LISTENERS.onblur} on:focus={LISTENERS.onfocus} />
 <svelte:head>
 	<SEO
-		title={tool.title || tool.name || 'Tools'}
-		description={tool.description || tool.name || 'Svelte tools'}
-		keywords="code,javascript,{tool.keywords || tool.id}"
+		title={tool?.title || tool?.name || 'Tools'}
+		description={tool?.description || tool?.name || 'Svelte tools'}
+		keywords="code,javascript,{tool?.keywords || tool?.id}"
 		site="Explosion's Tools"
-		image={tool.image || 'thumbnail.png'}
+		image={tool?.image || 'thumbnail.png'}
 		color="#a7c9d9"
 	/>
 	<base href="/tools/" />
