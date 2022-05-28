@@ -7,6 +7,7 @@
 	import confetti from 'canvas-confetti';
 	let searchQuery = '';
 	let bookmarklets;
+	import { loading } from '../store.js';
 	import { fly, fade } from 'svelte/transition';
 
 	let POPUP = {
@@ -14,6 +15,7 @@
 	};
 
 	onMount(() => {
+		$loading = true;
 		bookmarklets = fetch(
 			'https://gist.githubusercontent.com/Explosion-Scratch/c853c40e4c4c0b7ad74f7d8644c238ba/raw'
 		)
@@ -33,7 +35,7 @@
 						return out;
 					});
 			});
-		bookmarklets.then(console.log);
+		bookmarklets.then((b) => (($loading = false), console.log(b)));
 	});
 	async function run(action) {
 		// action === beautify | minify
@@ -85,9 +87,7 @@
 </script>
 
 <div class="container">
-	{#await bookmarklets}
-		<span class="loading" in:fly={{ y: 20, duration: 500 }} out:fade>Loading...</span>
-	{:then b}
+	{#await bookmarklets then b}
 		<h2 class="title">Bookmarklets</h2>
 		<span id="desc">Click on any of the bookmarklets to view more!</span>
 		<input type="text" id="search" bind:value={searchQuery} placeholder="Search..." />
@@ -426,9 +426,6 @@
 
 	#block {
 		z-index: -100;
-	}
-	.tool {
-		z-index: 100;
 	}
 	.bookmarklet_grid {
 		min-height: 70vh;

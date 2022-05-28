@@ -9,7 +9,9 @@ const config = {
 	preprocess: preprocess(),
 	kit: {
 		paths: { base: '/tools' },
-		adapter: adapter(),
+		adapter: adapter({
+			precompress: true
+		}),
 		prerender: { default: true },
 		// https://github.com/sveltejs/kit/tree/master/packages/adapter-static#github-pages
 		// TO ANYONE READING THIS FILE: MAKE SURE YOU HAVE THAT NEXT LINE OTHERWISE GITHUB PAGES WONT WORK. GITHUB PAGES DOESN"T ALLOW FOLDERS STARTING WITH "_"

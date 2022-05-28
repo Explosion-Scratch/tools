@@ -1,8 +1,38 @@
+<script context="module">
+	import tools from '../tools.json';
+	console.log(tools);
+	export async function load({ params, url }) {
+		let id = url.pathname.split('/').slice(-1)[0];
+
+		let found = tools.find((i) => i.id.toLowerCase() === id.toLowerCase());
+		if (!found) {
+			return {};
+		}
+		console.log(found);
+		return {
+			props: {
+				tool: found
+			}
+		};
+	}
+</script>
+
 <script>
+	export let tool = {};
+	import { loading } from '../store.js';
+	import Loader from '$components/Loader.svelte';
 	import Nav from '$components/Nav.svelte';
 	import { onMount } from 'svelte';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
+	import SEO from '$components/SEO.svelte';
+
 	let LISTENERS = {};
+
+	beforeNavigate(() => ($loading = true));
+	afterNavigate(() => ($loading = false));
+
 	onMount(() => {
+		$loading = false;
 		console.log('Layout mounted', window.onblur);
 		setInterval(e, 2000);
 		let blurred = false;
@@ -13,7 +43,7 @@
 
 		function e() {
 			let emojis = ['😄', '😛', '😝', '😁', '🙃', '🤠', '🤓'];
-			let sadEmojis = ['😭', '😩', '🥺'];
+			let sadEmojis = emojis;
 			let emoji = blurred
 				? sadEmojis[~~(Math.random() * 1000) % sadEmojis.length]
 				: emojis[~~(Math.random() * 1000) % emojis.length];
@@ -25,11 +55,22 @@
 	});
 </script>
 
+{#if $loading}
+	<Loader />
+{/if}
 <Nav />
 
 <slot />
 <svelte:window on:blur={LISTENERS.onblur} on:focus={LISTENERS.onfocus} />
 <svelte:head>
+	<SEO
+		title={tool.title || tool.name || 'Tools'}
+		description={tool.description || tool.name || 'Svelte tools'}
+		keywords="code,javascript,{tool.keywords || tool.id}"
+		site="Explosion's Tools"
+		image={tool.image || 'thumbnail.png'}
+		color="#a7c9d9"
+	/>
 	<base href="/tools/" />
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />

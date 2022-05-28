@@ -6,7 +6,8 @@
 	export let color = '#00bbbb';
 	export let image = '';
 	export let site = '';
-
+	export let url = '';
+	export let description = '';
 	/**
 	 * Generate a meta tags object [{attributeName: attributeContent}]
 	 * @param meta
@@ -60,7 +61,9 @@
 		language,
 		color,
 		image,
-		site
+		site,
+		url,
+		description
 	});
 </script>
 
