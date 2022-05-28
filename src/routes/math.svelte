@@ -9,15 +9,30 @@
 
 	onMount(() => {
 		mathField.setValue(value);
-		return;
 		mathField.setOptions({
+			...mathField.getOptions(),
+			smartSuperscript: true,
+			onKeystroke(mf, key, ev) {
+				console.log({ mf, key, ev });
+				if (key === 'ctrl+[KeyA]') {
+					mf.executeCommand('selectAll');
+				}
+				if (key === 'ctrl+[Backspace]') {
+					mf.setValue('');
+				}
+				if (key === 'ctrl+[Enter]' || key === '[Enter]') {
+					solve();
+				}
+				return true;
+			},
 			inlineShortcuts: {
+				...mathField.getOptions('inlineShortcuts'),
 				//
 				// ASCIIIMath
 				//
 				// Binary operation symbols
-				sqrt: '\\sqrt',
-				pi: '\\pi',
+				// sqrt: '\\sqrt',
+				// pi: '\\pi',
 				'*': '\\cdot',
 				'**': '\\ast',
 				'***': '\\star',
@@ -149,7 +164,6 @@
 			on:input={(e) => (value = e.target.value)}
 			bind:this={mathField}
 			smart-mode
-			smart-fence
 			defaultMode="math"
 			virtual-keyboard-mode="manual"
 		/>
@@ -180,7 +194,12 @@
 
 <style lang="less">
 	@color: #088;
-
+	:global(*::selection) {
+		background: fade(@color, 10%) !important;
+	}
+	:global(*) {
+		--highlight: fade(@color, 10%) !important;
+	}
 	.hoverfocus() {
 		&:hover {
 			box-shadow: 0 0 0 2px fade(@color, 20%);
