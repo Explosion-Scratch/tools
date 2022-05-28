@@ -1,11 +1,11 @@
 {
   ".svelte-kit/runtime/client/start.js": {
-    "file": "start-e7af90c4.js",
+    "file": "start-7d3c0938.js",
     "src": ".svelte-kit/runtime/client/start.js",
     "isEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_index-62dbb4c6.js",
+      "_index-0ee63240.js",
+      "_index-8bd30b3e.js",
       "_singletons-d1fb5791.js"
     ],
     "dynamicImports": [
@@ -18,85 +18,86 @@
       "src/routes/emojis.svelte",
       "src/routes/hash.svelte",
       "src/routes/index.svelte",
+      "src/routes/math.svelte",
       "src/routes/morse.svelte",
       "src/routes/statistics.svelte"
     ]
   },
   "src/routes/__layout.svelte": {
-    "file": "pages/__layout.svelte-0279bf61.js",
+    "file": "pages/__layout.svelte-414da68a.js",
     "src": "src/routes/__layout.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_navigation-0febced9.js",
-      "_store-9ade76e8.js",
-      "_index-5b269ed8.js",
+      "_index-0ee63240.js",
+      "_navigation-1eecb7a3.js",
+      "_store-5cff5e15.js",
+      "_index-14d8a88e.js",
       "_singletons-d1fb5791.js",
-      "_index-62dbb4c6.js"
+      "_index-8bd30b3e.js"
     ],
     "css": [
       "assets/pages/__layout.svelte-4e9a0543.css"
     ]
   },
   ".svelte-kit/runtime/components/error.svelte": {
-    "file": "error.svelte-97997eeb.js",
+    "file": "error.svelte-96f2b3de.js",
     "src": ".svelte-kit/runtime/components/error.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ]
   },
   "src/routes/beautify.svelte": {
-    "file": "pages/beautify.svelte-075d8b51.js",
+    "file": "pages/beautify.svelte-2fd744c7.js",
     "src": "src/routes/beautify.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_ToastContainer-d5e18aa8.js",
-      "_TippyStyles-5d97ea61.js",
+      "_index-0ee63240.js",
+      "_ToastContainer-b6f5af4c.js",
+      "_TippyStyles-727118ed.js",
       "_tooltip-899db86d.js",
-      "_index-62dbb4c6.js",
-      "_index-5b269ed8.js"
+      "_index-8bd30b3e.js",
+      "_index-14d8a88e.js"
     ],
     "css": [
       "assets/pages/beautify.svelte-ff282d72.css"
     ]
   },
   "src/routes/blank.svelte": {
-    "file": "pages/blank.svelte-57c9632a.js",
+    "file": "pages/blank.svelte-e47284f7.js",
     "src": "src/routes/blank.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ]
   },
   "src/routes/bookmarklets.svelte": {
-    "file": "pages/bookmarklets.svelte-c2db6865.js",
+    "file": "pages/bookmarklets.svelte-a7858d32.js",
     "src": "src/routes/bookmarklets.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
+      "_index-0ee63240.js",
       "_tooltip-899db86d.js",
-      "_store-9ade76e8.js",
-      "_index-5b269ed8.js",
-      "_index-62dbb4c6.js"
+      "_store-5cff5e15.js",
+      "_index-14d8a88e.js",
+      "_index-8bd30b3e.js"
     ],
     "css": [
       "assets/pages/bookmarklets.svelte-548c7f0b.css"
     ]
   },
   "src/routes/dictionary.svelte": {
-    "file": "pages/dictionary.svelte-416df157.js",
+    "file": "pages/dictionary.svelte-daa72487.js",
     "src": "src/routes/dictionary.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
+      "_index-0ee63240.js",
       "_bijou-106d2215.js"
     ],
     "css": [
@@ -104,123 +105,137 @@
     ]
   },
   "src/routes/emojis.svelte": {
-    "file": "pages/emojis.svelte-997a1cb1.js",
+    "file": "pages/emojis.svelte-df07b697.js",
     "src": "src/routes/emojis.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_TippyStyles-5d97ea61.js",
-      "_ToastContainer-d5e18aa8.js",
+      "_index-0ee63240.js",
+      "_TippyStyles-727118ed.js",
+      "_ToastContainer-b6f5af4c.js",
       "_bijou-106d2215.js",
       "_tooltip-899db86d.js",
-      "_index-62dbb4c6.js",
-      "_index-5b269ed8.js"
+      "_index-8bd30b3e.js",
+      "_index-14d8a88e.js"
     ],
     "css": [
       "assets/pages/emojis.svelte-3af6b869.css"
     ]
   },
   "src/routes/hash.svelte": {
-    "file": "pages/hash.svelte-364651d8.js",
+    "file": "pages/hash.svelte-65f045d1.js",
     "src": "src/routes/hash.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_ToastContainer-d5e18aa8.js",
-      "_index-62dbb4c6.js",
-      "_index-5b269ed8.js"
+      "_index-0ee63240.js",
+      "_ToastContainer-b6f5af4c.js",
+      "_index-8bd30b3e.js",
+      "_index-14d8a88e.js"
     ],
     "css": [
       "assets/pages/hash.svelte-70b4cd4c.css"
     ]
   },
   "src/routes/index.svelte": {
-    "file": "pages/index.svelte-a758e6ec.js",
+    "file": "pages/index.svelte-410c6659.js",
     "src": "src/routes/index.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js",
-      "_navigation-0febced9.js",
+      "_index-0ee63240.js",
+      "_navigation-1eecb7a3.js",
       "_tooltip-899db86d.js",
-      "_TippyStyles-5d97ea61.js",
+      "_TippyStyles-727118ed.js",
       "_singletons-d1fb5791.js"
     ],
     "css": [
       "assets/pages/index.svelte-692fe665.css"
     ]
   },
+  "src/routes/math.svelte": {
+    "file": "pages/math.svelte-1a0ac278.js",
+    "src": "src/routes/math.svelte",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_index-0ee63240.js",
+      "_store-5cff5e15.js",
+      "_index-8bd30b3e.js"
+    ],
+    "css": [
+      "assets/pages/math.svelte-59b8cec7.css"
+    ]
+  },
   "src/routes/morse.svelte": {
-    "file": "pages/morse.svelte-67c675aa.js",
+    "file": "pages/morse.svelte-4003ab65.js",
     "src": "src/routes/morse.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ],
     "css": [
       "assets/pages/morse.svelte-dc2baa8b.css"
     ]
   },
   "src/routes/statistics.svelte": {
-    "file": "pages/statistics.svelte-b88826eb.js",
+    "file": "pages/statistics.svelte-05f61155.js",
     "src": "src/routes/statistics.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ],
     "css": [
       "assets/pages/statistics.svelte-a3a00e5c.css"
     ]
   },
-  "_index-ca2aee43.js": {
-    "file": "chunks/index-ca2aee43.js"
+  "_index-0ee63240.js": {
+    "file": "chunks/index-0ee63240.js"
   },
-  "_index-62dbb4c6.js": {
-    "file": "chunks/index-62dbb4c6.js",
+  "_index-8bd30b3e.js": {
+    "file": "chunks/index-8bd30b3e.js",
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ]
   },
   "_singletons-d1fb5791.js": {
     "file": "chunks/singletons-d1fb5791.js"
   },
-  "_navigation-0febced9.js": {
-    "file": "chunks/navigation-0febced9.js",
+  "_navigation-1eecb7a3.js": {
+    "file": "chunks/navigation-1eecb7a3.js",
     "imports": [
       "_singletons-d1fb5791.js"
     ]
   },
-  "_store-9ade76e8.js": {
-    "file": "chunks/store-9ade76e8.js",
+  "_store-5cff5e15.js": {
+    "file": "chunks/store-5cff5e15.js",
     "imports": [
-      "_index-62dbb4c6.js"
+      "_index-8bd30b3e.js"
     ]
   },
-  "_index-5b269ed8.js": {
-    "file": "chunks/index-5b269ed8.js",
+  "_index-14d8a88e.js": {
+    "file": "chunks/index-14d8a88e.js",
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ]
   },
-  "_ToastContainer-d5e18aa8.js": {
-    "file": "chunks/ToastContainer-d5e18aa8.js",
+  "_ToastContainer-b6f5af4c.js": {
+    "file": "chunks/ToastContainer-b6f5af4c.js",
     "imports": [
-      "_index-ca2aee43.js",
-      "_index-62dbb4c6.js",
-      "_index-5b269ed8.js"
+      "_index-0ee63240.js",
+      "_index-8bd30b3e.js",
+      "_index-14d8a88e.js"
     ],
     "css": [
       "assets/ToastContainer-b2ea7ee0.css"
     ]
   },
-  "_TippyStyles-5d97ea61.js": {
-    "file": "chunks/TippyStyles-5d97ea61.js",
+  "_TippyStyles-727118ed.js": {
+    "file": "chunks/TippyStyles-727118ed.js",
     "imports": [
-      "_index-ca2aee43.js"
+      "_index-0ee63240.js"
     ]
   },
   "_tooltip-899db86d.js": {
