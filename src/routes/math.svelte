@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 
 	onMount(() => {
+		window.mathField = mathField;
 		mathField.setValue(value);
 		mathField.setOptions({
 			...mathField.getOptions(),
@@ -16,6 +17,55 @@
 				console.log({ mf, key, ev });
 				if (key === 'ctrl+[KeyA]') {
 					mf.executeCommand('selectAll');
+				}
+				const START = String.raw`\left.\begin{cases}`;
+				const ENDCASES = String.raw`\end{cases}\right.`;
+				const PLACEHOLDER = String.raw`\placeholder{New equation}`;
+				const END = String.raw`\\{${PLACEHOLDER}}${ENDCASES}`;
+
+				if (key === 'shift+[Enter]') {
+					let val = mathField.value;
+					if (!val.startsWith(START)) {
+						let pos = mathField.position;
+						mf.setValue(START + `{${mathField.value}}` + END);
+						mathField.position = pos + 7;
+					} else {
+						console.log({ START, ENDCASES }, val.includes(ENDCASES));
+						let current = val
+							.replace(new RegExp(`^${escr(START)}`), '')
+							.replace(new RegExp(`${escr(ENDCASES)}$`), '');
+						console.log(current);
+						mf.setValue(`${START}${current}${END}`);
+					}
+				}
+				function escr(string) {
+					return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+				}
+				if (key === '[Backspace]') {
+					if (mathField.value === String.raw`\left.\begin{cases}{}\end{cases}\right.`) {
+						mathField.setValue('');
+						return;
+					}
+					let val = mathField.value;
+					let ending = String.raw`\\ {}`;
+					console.log(
+						{ val },
+						val.startsWith(START),
+						val.endsWith(ending + ENDCASES),
+						ending + ENDCASES
+					);
+					if (
+						val.startsWith(START) &&
+						(val.endsWith(ending + ENDCASES) || val.endsWith(ending + ' ' + ENDCASES))
+					) {
+						let current = val
+							.replace(new RegExp(`^${escr(START)}`), '')
+							.replace(new RegExp(`${escr(ending)}[ \\\\]*${escr(ENDCASES)}$`), '');
+						console.log(current);
+						let pos = mathField.position;
+						mathField.setValue(`${START}${current}${ENDCASES}`);
+						mathField.position = pos - 3;
+					}
 				}
 				if (key === 'ctrl+[Backspace]') {
 					mf.setValue('');
