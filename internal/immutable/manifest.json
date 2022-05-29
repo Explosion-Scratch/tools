@@ -1,6 +1,6 @@
 {
   ".svelte-kit/runtime/client/start.js": {
-    "file": "start-b7bed249.js",
+    "file": "start-91259a0a.js",
     "src": ".svelte-kit/runtime/client/start.js",
     "isEntry": true,
     "imports": [
@@ -154,7 +154,7 @@
     ]
   },
   "src/routes/math.svelte": {
-    "file": "pages/math.svelte-40fca797.js",
+    "file": "pages/math.svelte-8b49feb5.js",
     "src": "src/routes/math.svelte",
     "isEntry": true,
     "isDynamicEntry": true,
@@ -164,7 +164,7 @@
       "_index-8bd30b3e.js"
     ],
     "css": [
-      "assets/pages/math.svelte-0c0f4ecd.css"
+      "assets/pages/math.svelte-1da09f36.css"
     ]
   },
   "src/routes/morse.svelte": {
