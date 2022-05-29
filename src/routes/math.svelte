@@ -14,7 +14,6 @@
 			...mathField.getOptions(),
 			smartSuperscript: true,
 			onKeystroke(mf, key, ev) {
-				console.log({ mf, key, ev });
 				if (key === 'ctrl+[KeyA]') {
 					mf.executeCommand('selectAll');
 				}
@@ -196,6 +195,7 @@
 		result = JSON.parse(
 			JSON.parse(json.json.results[0].tags[0].actions[0].customData).previewText
 		).mathSolverResult;
+		console.log({ result });
 		$loading = false;
 	}
 </script>
@@ -278,6 +278,7 @@
 		}
 	}
 	.inner_container {
+		padding: 5px;
 		max-width: 500px;
 		width: 80vw;
 		height: fit-content;
