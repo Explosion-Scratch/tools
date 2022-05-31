@@ -11,9 +11,8 @@
 	import { fly, fade } from 'svelte/transition';
 
 	let POPUP = {
-		open: false
+		open: false,
 	};
-
 	onMount(() => {
 		$loading = true;
 		bookmarklets = fetch(
@@ -35,8 +34,29 @@
 						return out;
 					});
 			});
-		bookmarklets.then((b) => (($loading = false), console.log(b)));
+		bookmarklets.then((b) => {
+			$loading = false;
+			setInterval(() => {
+				if (POPUP.title && POPUP.open){
+					location.hash = format(POPUP.title);
+				} else {
+					location.hash = "";
+				}
+			}, 400)
+			if (!location.hash) {
+				return;
+			}
+			let hash = location.hash.slice(1);
+			let bm = b.find((a) => format(a.title) === format(hash));
+			if (!bm) {
+				return;
+			}
+			popup(bm);
+		});
 	});
+	function format(a) {
+		return a.toLowerCase().replace(/[^a-z]/g, '');
+	}
 	async function run(action) {
 		// action === beautify | minify
 		const code = POPUP.code;
