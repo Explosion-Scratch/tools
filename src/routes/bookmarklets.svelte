@@ -53,6 +53,32 @@
 			}
 			popup(bm);
 		});
+		// Scrolling on hashchange fix
+		let scrollTop = document.documentElement.scrollTop;
+		window.addEventListener(
+		  "scroll",
+		  () => (scrollTop = document.documentElement.scrollTop)
+		);
+
+		window.addEventListener(
+		  "hashchange",
+		  () => {
+		    // disable scrolling
+		    document.body.style.overflow = "hidden";
+
+		    // set current scroll position
+		    window.scroll(0, scrollTop);
+
+		    // enable scrolling
+		    setTimeout(() => {
+		      document.body.style.overflow = "auto";
+		    }, 10);
+		  },
+		  false
+		);
+
+		// trigger hashchange event on page load
+		window.dispatchEvent(new Event("hashchange"));
 	});
 	function format(a) {
 		return a.toLowerCase().replace(/[^a-z]/g, '');
