@@ -47,7 +47,8 @@
 		return { stations, offset: offset + i * 20 };
 	}
 	function apiReq(route, params) {
-		return fetch(`https://${server}/json/${route}?${new URLSearchParams(params).toString()}`).then(
+		if (!server){console.warn("No server, falling back to hardcoded one: 'de1.api.radio-browser.info'")}
+		return fetch(`https://${server || 'de1.api.radio-browser.info'}/json/${route}?${new URLSearchParams(params).toString()}`).then(
 			(r) => r.json()
 		);
 	}
