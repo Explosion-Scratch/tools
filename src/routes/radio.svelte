@@ -258,6 +258,16 @@
 	* {
 		box-sizing: border-box;
 	}
+	#noResults {
+		padding: .3rem;
+		margin-top: 1rem;
+		width: 100%;
+		text-align: center;
+		font-weight: 200;
+		font-style: italic;
+		font-size: 1.3rem;
+		color: #999;
+	}
 	.radio_container {
 		display: flex;
 		flex-direction: column;

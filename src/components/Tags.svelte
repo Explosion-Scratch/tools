@@ -66,26 +66,8 @@
 			addKeys.forEach(function (key) {
 				if (key === e.keyCode) {
 					if (currentTag) e.preventDefault();
-
-					/* switch (input.keyCode) {
-                    case 9:
-                        // TAB add first element on the autoComplete list
-                        if (autoComplete && document.getElementById(matchsID)) {                        
-                            addTag(document.getElementById(matchsID).querySelectorAll("li")[0].textContent);
-                        } else {
-                            addTag(currentTag);
-                        }                    
-                        break;
-                    default:
-                        addTag(currentTag);
-                        break;
-                    } */
-					// console.log(matchsID)
-					// if (autoComplete && document.getElementById(matchsID)) {
-						// addTag(document.getElementById(matchsID).querySelectorAll('li')[0].textContent);
-					// } else {
-						addTag(currentTag);
-					// }
+					// CHANGED: Simply add whatever's typed into the input instead of the first suggestion
+					addTag(currentTag);
 				}
 			});
 		}
