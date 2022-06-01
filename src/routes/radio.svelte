@@ -1,4 +1,5 @@
 <script>
+	import Tags from '$components/Tags.svelte';
 	import { loading } from '../store.js';
 	import toast from '$helpers/toast.js';
 	import ToastContainer from '$components/ToastContainer.svelte';
@@ -12,7 +13,9 @@
 		recentStations = [{}],
 		loadingStations = false,
 		currentStation,
-		stationList;
+		stationList,
+		tagList,
+		tags = [];
 
 	import { onMount } from 'svelte';
 	onMount(async () => {
@@ -24,31 +27,48 @@
 			server = await getServers().then((i) => i[0]);
 			localStorage.setItem('server', server);
 		}
+		tagList = await apiReq('tags', { hidebroken: true });
 		$loading = false;
-		while (stationList.scrollHeight === stationList.clientHeight) {
-			await loadStations();
-			await new Promise((r) => setTimeout(r, 200));
-		}
-		loadStations();
+		initStations();
 	});
-	async function getEnglish(limit, offset = 0) {
+	async function getStations(limit, offset = 0) {
+		console.log(tags);
 		console.log({ limit, offset });
 		let stations = [];
 		let i = 1;
 		while (stations.length < limit) {
-			let en = await apiReq('stations/topclick', {
+			let en = await apiReq('stations/search', {
 				limit: 20,
 				offset: i++ * 20 + offset,
-				hidebroken: true
-			}).then((a) => a.filter((i) => i.language === 'english' && i.codec === 'MP3'));
+				hidebroken: true,
+				codec: 'mp3',
+				countrycode: 'us',
+				is_https: 'true',
+				language: 'english',
+				languageExact: 'true',
+				order: 'votes',
+				...(tags?.length && { tagExact: true, tag: tags.join('') })
+			});
+			if (!en.length) {
+				// Remove most filters and try one last time
+				stations.push(
+					...(await apiReq('stations/search', {
+						limit: 20,
+						hidebroken: true,
+						codec: 'mp3',
+						order: 'votes',
+						...(tags?.length && { tagExact: true, tag: tags.join('') })
+					}))
+				);
+				break;
+			}
 			stations.push(...en);
 		}
 
 		return { stations, offset: offset + i * 20 };
 	}
-	function apiReq(route, params) {
-		if (!server){console.warn("No server, falling back to hardcoded one: 'de1.api.radio-browser.info'")}
-		return fetch(`https://${server || 'de1.api.radio-browser.info'}/json/${route}?${new URLSearchParams(params).toString()}`).then(
+	function apiReq(route, params = {}) {
+		return fetch(`https://${server}/json/${route}?${new URLSearchParams(params).toString()}`).then(
 			(r) => r.json()
 		);
 	}
@@ -114,13 +134,25 @@
 			return;
 		}
 		loadingStations = true;
-		getEnglish(10, offset).then(({ stations: newStations, offset: off }) => {
+		getStations(10, offset).then(({ stations: newStations, offset: off }) => {
 			recentStations = [...newStations];
-			console.log({ stations, off });
+			console.log({ stations, off, newStations, recentStations, length: recentStations.length });
 			offset = off;
 			stations = [...stations, ...newStations];
 			loadingStations = false;
 		});
+	}
+	function handleTags({ detail: { tags: _tags } }) {
+		tags = _tags;
+		stations = [];
+		initStations();
+	}
+	async function initStations() {
+		while (stationList.scrollHeight === stationList.clientHeight) {
+			await loadStations();
+			await new Promise((r) => setTimeout(r, 200));
+		}
+		loadStations();
 	}
 </script>
 
@@ -137,6 +169,7 @@
 				{#if currentStation.favicon}<img
 						src={currentStation.favicon}
 						alt="Icon for {currentStation.name}"
+						on:error={(e) => e.target.remove()}
 						class="favicon"
 					/>{/if}
 				{currentStation.name}
@@ -162,6 +195,21 @@
 		{/if}
 		<audio controls={!!currentStation} bind:this={audio} />
 	</div>
+	<div class="filter">
+		<Tags
+			addKeys={[13, 32]}
+			placeholder="Filter by tags"
+			allowBlur={true}
+			autoCompleteFilter={false}
+			on:tags={handleTags}
+			autoComplete={(a) =>
+				tagList
+					.filter((i) => i.name.toLowerCase().includes(a.toLowerCase()))
+					.slice(0, 30)
+					.sort((a, b) => a.stationcount - b.stationcount)
+					.map((i) => i.name)}
+		/>
+	</div>
 	<ul class="stations" bind:this={stationList}>
 		{#if loadingStations}
 			<div class="loader">
@@ -184,6 +232,14 @@
 					secondary={station?.stationuuid === currentStation?.stationuuid ? '⏸️' : '▶︎'}
 				/>
 			</li>
+		{:else}
+			<span id="noResults">
+				{#if loadingStations}
+					Loading...
+				{:else}
+					No results
+				{/if}
+			</span>
 		{/each}
 		<div
 			use:inview
@@ -195,6 +251,10 @@
 </div>
 
 <style lang="less">
+	:global(.svelte-tags-input-matchs) {
+		background: white;
+		z-index: 100;
+	}
 	* {
 		box-sizing: border-box;
 	}
