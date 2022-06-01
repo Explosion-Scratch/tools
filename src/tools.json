@@ -1,5 +1,10 @@
 [
 	{
+		"name": "Radio",
+		"description": "Play any radio station online!",
+		"id": "radio"
+	},
+	{
 		"name": "Math calculator",
 		"description": "A step by step algebra, calculus and mathematics solver",
 		"id": "math"
