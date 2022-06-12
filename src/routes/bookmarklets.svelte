@@ -8,10 +8,12 @@
 	let searchQuery = '';
 	let bookmarklets;
 	import { loading } from '../store.js';
-	import { fly, fade } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import { fly, fade, scale } from 'svelte/transition';
+	import { debounce } from 'bijou.js';
 
 	let POPUP = {
-		open: false,
+		open: false
 	};
 	onMount(() => {
 		$loading = true;
@@ -37,48 +39,24 @@
 		bookmarklets.then((b) => {
 			$loading = false;
 			setInterval(() => {
-				if (POPUP.title && POPUP.open){
-					location.hash = format(POPUP.title);
+				if (POPUP.title && POPUP.open) {
+					const url = new URL(window.location);
+					url.searchParams.set('id', format(POPUP.title));
+					window.history.replaceState({}, document.title, url);
 				} else {
-					location.hash = "";
+					window.history.replaceState({}, document.title, location.pathname);
 				}
-			}, 400)
-			if (!location.hash) {
+			}, 400);
+			if (!new URLSearchParams(location.search).get('id')) {
 				return;
 			}
-			let hash = location.hash.slice(1);
-			let bm = b.find((a) => format(a.title) === format(hash));
+			let id = new URLSearchParams(location.search).get('id');
+			let bm = b.find((a) => format(a.title) === format(id));
 			if (!bm) {
 				return;
 			}
 			popup(bm);
 		});
-		// Scrolling on hashchange fix
-		let scrollTop = document.documentElement.scrollTop;
-		window.addEventListener(
-		  "scroll",
-		  () => (scrollTop = document.documentElement.scrollTop)
-		);
-
-		window.addEventListener(
-		  "hashchange",
-		  () => {
-		    // disable scrolling
-		    document.body.style.overflow = "hidden";
-
-		    // set current scroll position
-		    window.scroll(0, scrollTop);
-
-		    // enable scrolling
-		    setTimeout(() => {
-		      document.body.style.overflow = "auto";
-		    }, 10);
-		  },
-		  false
-		);
-
-		// trigger hashchange event on page load
-		window.dispatchEvent(new Event("hashchange"));
 	});
 	function format(a) {
 		return a.toLowerCase().replace(/[^a-z]/g, '');
@@ -136,13 +114,18 @@
 	{#await bookmarklets then b}
 		<h2 class="title">Bookmarklets</h2>
 		<span id="desc">Click on any of the bookmarklets to view more!</span>
-		<input type="text" id="search" bind:value={searchQuery} placeholder="Search..." />
+		<input
+			type="text"
+			id="search"
+			on:keyup={debounce((e) => (searchQuery = e.target.value), 400)}
+			placeholder="Search..."
+		/>
 		<div class="bookmarklet_grid">
-			{#each filter(b || [], searchQuery) as _}
+			{#each filter(b || [], searchQuery) as _ (b.indexOf(_))}
 				<div
 					on:click={() => popup(_)}
 					class="bookmarklet"
-					transition:fly={{ y: 20, duration: 500 }}
+					animate:flip={{ duration: 400 }}
 					style={`--first-color: hsla(${_.color}, 78%, 68%, 10%); --second-color: hsla(${
 						(_.color + 50) % 360
 					}, 78%, 68%, 10%);`}
