@@ -1,3 +1,5 @@
+import { until } from '$helpers/utils';
+
 export default async function tooltip(node, params) {
 	await until(() => window.tippy);
 	if (typeof params === 'string') {
@@ -22,18 +24,4 @@ export default async function tooltip(node, params) {
 			tip.destroy();
 		}
 	};
-}
-
-function until(cb, wait) {
-	if (cb()) {
-		return cb();
-	}
-	return new Promise((resolve) => {
-		let int = setInterval(() => {
-			if (cb()) {
-				clearInterval(int);
-				resolve(cb());
-			}
-		}, wait);
-	});
 }
