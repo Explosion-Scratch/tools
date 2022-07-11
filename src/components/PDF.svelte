@@ -1,12 +1,15 @@
 <script>
+	import enlargeable from '$helpers/enlargeable.js';
 	export let url = '';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { until } from '$helpers/utils';
 	let outer;
 	let pdf = {};
 	let doc = {};
 	let pages = [];
 	let loading = true;
+	let destroy = () => {};
+	onDestroy(destroy);
 	onMount(async () => {
 		pdf = await until(() => window['pdfjs-dist/build/pdf']);
 		pdf.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
@@ -20,6 +23,8 @@
 			await new Promise((resolve) => {
 				let canvas = document.createElement('canvas');
 				container.appendChild(canvas);
+				let a = enlargeable(canvas);
+				destroy = a.destroy;
 				canvas.width = window.innerWidth;
 				canvas.style.border = '1px solid #0005';
 				canvas.style.opacity = 0;

@@ -1,5 +1,10 @@
 [
 	{
+		"name": "Scientific article viewer",
+		"description": "A viewer for scientific articles based on DOI.",
+		"id": "articleviewer"
+	},
+	{
 		"name": "Radio",
 		"description": "Play any radio station online!",
 		"id": "radio"
