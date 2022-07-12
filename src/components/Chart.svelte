@@ -27,14 +27,22 @@
 			options: {
 				responsive: true,
 				scales: {
+					y: {
+						suggestedMin: limits.minY,
+						suggestedMax: limits.maxY,
+						type: 'linear',
+						position: 'right'
+					},
 					x: {
+						suggestedMin: limits.minX,
+						suggestedMax: limits.maxX,
 						type: 'linear',
 						position: 'bottom'
 					}
 				},
 				plugins: {
 					zoom: {
-						limits: {
+						/* limits: {
 							x: {
 								min: limits.minX,
 								max: limits.maxX
@@ -43,7 +51,7 @@
 								min: limits.minY,
 								max: limits.maxY
 							}
-						},
+						}, */
 						zoom: {
 							wheel: {
 								enabled: true

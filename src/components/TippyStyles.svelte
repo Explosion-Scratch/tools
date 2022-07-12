@@ -1,6 +1,4 @@
 <svelte:head>
-	<script src="https://unpkg.com/@popperjs/core@2"></script>
-	<script src="https://unpkg.com/tippy.js@6"></script>
 	<style global>
 		.tippy-box[data-theme~='light'] {
 			color: #26323d;
