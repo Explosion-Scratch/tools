@@ -19,6 +19,16 @@
 </script>
 
 <div class="result_container" bind:this={container}>
+	{#if result.allGraphData?.[0]?.graphImageData}
+		<div class="action">
+			<h2 class="actionName">{result.allGraphData[0].actionName}</h2>
+			<img
+				class="graph"
+				src={result.allGraphData[0].graphImageData}
+				alt="Graph of {result.detectedLatex}"
+			/>
+		</div>
+	{/if}
 	{#each result.actions as action}
 		<div class="action">
 			<h2 class="actionName">
@@ -51,15 +61,22 @@
 
 <style lang="less">
 	@color: #088;
-
 	.action {
 		border: 1px solid fade(@color, 10%);
 		padding: 0.5rem 1rem;
 		border-radius: 0.3rem;
+		margin: 0.5rem auto;
 		.actionName {
 			font-style: italic;
 			font-weight: 200;
 			font-size: 1.6rem;
+		}
+		.graph {
+			width: 80%;
+			margin: 0 auto;
+			display: block;
+			border-radius: 0.3rem;
+			margin-bottom: 0.5rem;
 		}
 		.solution_text {
 			border: 0.15rem solid fade(@color, 20%);

@@ -6,10 +6,14 @@
 	let mathField = null;
 
 	import { onMount } from 'svelte';
+	let _r = {};
 
 	onMount(() => {
 		window.mathField = mathField;
-		mathField.setValue(value);
+		mathField.setValue(new URLSearchParams(location.search).get('q') || value);
+		if (new URLSearchParams(location.search).get('q')) {
+			setTimeout(solve);
+		}
 		mathField.setOptions({
 			...mathField.getOptions(),
 			smartSuperscript: true,
@@ -195,7 +199,13 @@
 		result = JSON.parse(
 			JSON.parse(json.json.results[0].tags[0].actions[0].customData).previewText
 		).mathSolverResult;
-		console.log({ result });
+		_r = JSON.parse(json.json.results[0].tags[0].actions[0].customData);
+		console.log(_r);
+		let u = new URL(location);
+		let s = new URLSearchParams(location.search);
+		s.set('q', result.detectedLatex);
+		u.search = s;
+		history.pushState({ result }, 'Math solver', u);
 		$loading = false;
 	}
 </script>
@@ -220,9 +230,10 @@
 		<button class="solve" on:click={solve}> Solve </button>
 		<div class="result">
 			{#if result}
-				{#if result.isError}
+				{#if result.isError || _r.isError}
 					<span class="error">
-						There was an error: {result.errorDisplayMessage ||
+						There was an error: {_r.errorMessage ||
+							result.errorDisplayMessage ||
 							result.errorMessage ||
 							'Math invalid'}
 					</span>
