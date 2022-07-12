@@ -1,4 +1,6 @@
 <script>
+	import { loading } from '../store.js';
+	import Chart from '$components/Chart.svelte';
 	export let result = {};
 	let container = document.body;
 	import { afterUpdate, onMount } from 'svelte';
@@ -19,13 +21,31 @@
 </script>
 
 <div class="result_container" bind:this={container}>
-	{#if result.allGraphData?.[0]?.graphImageData}
+	{#if result.allGraphData?.[0]?.graphImageData && !$loading}
 		<div class="action">
 			<h2 class="actionName">{result.allGraphData[0].actionName}</h2>
-			<img
-				class="graph"
-				src={result.allGraphData[0].graphImageData}
-				alt="Graph of {result.detectedLatex}"
+			<noscript
+				><img
+					class="graph"
+					src={result.allGraphData[0].graphImageData}
+					alt="Graph of {result.detectedLatex}"
+				/></noscript
+			>
+			<!-- 
+				limits: {
+					maxX: 16.6375
+					maxY: 30.25
+					minX: -16.6375
+					minY: -3.025
+				}
+				graphs: [{name: "blah", points: [{x: 0, y: 0}]}]
+			 -->
+			<Chart
+				graphs={result.allGraphData[0].rawGraphData.curveData.map((i) => ({
+					name: i.curveExpression,
+					points: i.pointGroups.map((i) => i.points).flat()
+				}))}
+				limits={result.allGraphData[0].displayRange}
 			/>
 		</div>
 	{/if}

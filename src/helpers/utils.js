@@ -1,6 +1,6 @@
 export function until(cb, wait) {
 	if (cb()) {
-		return cb();
+		return Promise.resolve(cb());
 	}
 	return new Promise((resolve) => {
 		let int = setInterval(() => {
