@@ -41,10 +41,15 @@
 				graphs: [{name: "blah", points: [{x: 0, y: 0}]}]
 			 -->
 			<Chart
-				graphs={result.allGraphData[0].rawGraphData.curveData.map((i) => ({
-					name: i.curveExpression,
-					points: i.pointGroups.map((i) => i.points).flat()
-				}))}
+				graphs={result.allGraphData[0].rawGraphData.curveData
+					.map((i) =>
+						i.pointGroups?.length > 1 ? i.pointGroups.map((j) => ({ ...i, pointGroups: [j] })) : i
+					)
+					.flat()
+					.map((i) => ({
+						name: i.curveExpression,
+						points: i.pointGroups[0].points
+					}))}
 				limits={result.allGraphData[0].displayRange}
 			/>
 		</div>
