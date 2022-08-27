@@ -297,6 +297,9 @@
 	:global(*) {
 		--highlight: fade(@color, 10%) !important;
 	}
+	:global(.ML__contains-highlight){
+		background: fade(@color, 15%) !important;
+	}
 	.hoverfocus() {
 		&:hover {
 			box-shadow: 0 0 0 2px fade(@color, 20%);
