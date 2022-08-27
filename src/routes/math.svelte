@@ -168,34 +168,7 @@
 	async function solve() {
 		$loading = true;
 		let latex = value;
-		let json = await fetch('https://apis.explosionscratc.repl.co/fetch', {
-			method: 'POST',
-			body: JSON.stringify({
-				url: 'https://mathsolver.microsoft.com/cameraexp/api/v1/solvelatex',
-				args: {
-					headers: {
-						accept: 'application/json',
-						'content-type': 'application/json'
-					},
-					body: JSON.stringify({
-						latexExpression: latex,
-						clientInfo: {
-							platform: 'web',
-							mkt: 'en',
-							skipGraphOutput: true,
-							skipBingVideoEntity: true
-						},
-						customLatex: latex,
-						showCustomResult: false
-					}),
-					referrer: `https://mathsolver.microsoft.com/en/solve-problem/${encodeURIComponent(
-						latex
-					)}`,
-					referrerPolicy: 'strict-origin-when-cross-origin',
-					method: 'POST'
-				}
-			})
-		}).then((res) => res.json());
+		let json = await getresult(latex);
 		result = JSON.parse(
 			JSON.parse(json.json.results[0].tags[0].actions[0].customData).previewText
 		).mathSolverResult;
@@ -207,6 +180,69 @@
 		u.search = s;
 		history.pushState({ result }, 'Math solver', u);
 		$loading = false;
+	}
+
+	async function getresult(problem) {
+		const muidb = await fetch('https://apis.explosionscratc.repl.co/fetch', {
+			method: 'POST',
+			body: JSON.stringify({
+				url: `https://mathsolver.microsoft.com/en/solve-problem/${encodeURIComponent(problem)}`,
+				args: {
+					headers: {
+						'User-Agent': `Mozilla/5.0 (X11; CrOS x86_64 14909.100.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`,
+						origin: `https://mathsolver.microsoft.com/en/solve-problem/${encodeURIComponent(
+							problem
+						)}`
+					}
+				}
+			})
+		})
+			.then((a) => a.json())
+			.then((j) => j.headers['set-cookie'].split('=')[1].split(';')[0]);
+		return await fetch('https://apis.explosionscratc.repl.co/fetch', {
+			method: 'POST',
+			body: JSON.stringify({
+				url: 'https://mathsolver.microsoft.com/cameraexp/api/v1/solvelatex',
+				args: {
+					method: 'POST',
+					headers: {
+						accept: 'application/json',
+						'accept-language': 'en-US,en;q=0.9',
+						'cache-control': 'no-cache',
+						'content-type': 'application/json',
+						pragma: 'no-cache',
+						'sec-ch-ua': '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
+						'sec-ch-ua-mobile': '?0',
+						'sec-ch-ua-platform': '"Chrome OS"',
+						'sec-fetch-dest': 'empty',
+						'sec-fetch-mode': 'cors',
+						'sec-fetch-site': 'same-origin',
+						cookie: `MUIDB=${muidb};MicrosoftApplicationsTelemetryFirstLaunchTime=${new Date(
+							new Date() - Math.random() * 48 * 60 * 60 * 1000
+						).toISOString()}`,
+						Referer: `https://mathsolver.microsoft.com/en/solve-problem/${encodeURIComponent(
+							problem
+						)}`,
+						origin: `https://mathsolver.microsoft.com/en/solve-problem/${encodeURIComponent(
+							problem
+						)}`,
+						'User-Agent': `Mozilla/5.0 (X11; CrOS x86_64 14909.100.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36`,
+						'Referrer-Policy': 'strict-origin-when-cross-origin'
+					},
+					body: JSON.stringify({
+						latexExpression: problem,
+						clientInfo: {
+							platform: 'web',
+							mkt: 'en',
+							skipGraphOutput: true,
+							skipBingVideoEntity: true
+						},
+						customLatex: problem,
+						showCustomResult: false
+					})
+				}
+			})
+		}).then((a) => a.json());
 	}
 </script>
 
