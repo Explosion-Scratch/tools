@@ -297,9 +297,6 @@
 	:global(*) {
 		--highlight: fade(@color, 10%) !important;
 	}
-	:global(.ML__contains-highlight){
-		background: fade(@color, 15%) !important;
-	}
 	.hoverfocus() {
 		&:hover {
 			box-shadow: 0 0 0 2px fade(@color, 20%);
@@ -360,6 +357,7 @@
 			border: 0.13rem dashed fade(@color, 5%);
 		}
 		math-field {
+			--contains-highlight: fade(@color, 10%);
 			border: 0.15rem solid @color;
 		}
 		.solve {
