@@ -10,7 +10,7 @@
 	import { loading } from '../store.js';
 	let url;
 	let doi = '10.1126/science.169.3946.635';
-	let article;
+	let article, blob;
 	import { onMount } from 'svelte';
 
 	onMount(() => {
@@ -20,7 +20,11 @@
 			getArticle();
 		}
 	});
-	async function getArticle() {
+	async function getArticle(_doi) {
+		blob = null;
+		if (_doi){
+			doi = _doi
+		}
 		// TODO: Doi regex
 		if (!doi.match(/^10.\d{4,9}\/[-\._;\(\)\/:A-Z0-9]+$/i)) {
 			let doi2 = doi.match(/(10[.][0-9]{4,}[^\s"/<>]*\/[^\s"<>]+)/)[1];
@@ -43,6 +47,10 @@
 		u.search = p;
 		history.replaceState({}, '', u);
 		console.log({ url, article, doi });
+		fetch(`https://cors.explosionscratc.repl.co/${url.split("//")[1]}`).then(r => r.blob()).then(b => {
+			//Create blob URL
+			blob = URL.createObjectURL(blob);
+		});
 		$loading = false;
 	}
 	async function getUrl(e) {
@@ -109,7 +117,7 @@
 				<h2 class="title">
 					{article.title}
 					{#if url}
-						<a class="open" href={url} use:tooltip={'Open PDF in a new tab'} target="_blank"
+						<a class="open" href={blob || url} use:tooltip={'Open PDF in a new tab'} target="_blank"
 							><svg
 								xmlns="http://www.w3.org/2000/svg"
 								xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -151,7 +159,7 @@
 	{:else if page === 'input'}
 		<h2 class="title">Paste DOI here</h2>
 		<input
-			on:paste={getArticle}
+			on:paste={(e) => getArticle(e.clipboardData.getData("text/plain"))}
 			on:keyup={({ key }) => key === 'Enter' && getArticle()}
 			bind:value={doi}
 			placeholder="DOI here, e.g. 10.1126/science.169.3946.635"
