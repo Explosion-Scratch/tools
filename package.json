@@ -18,7 +18,7 @@
 		"@novacbn/svelte-codejar": "^0.1.2",
 		"@playwright/test": "^1.21.0",
 		"@sveltejs/adapter-static": "^1.0.0-next.29",
-		"@sveltejs/kit": "1.0.0-next.345",
+		"@sveltejs/kit": "1.15.2",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",
 		"@typescript-eslint/parser": "^5.10.1",
 		"bijou.js": "^8.2.4",
