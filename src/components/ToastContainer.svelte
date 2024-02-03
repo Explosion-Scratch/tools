@@ -37,8 +37,8 @@
 		<div
 			class="notification"
 			id={notif.id}
-			in:receive={{ key: notif.id }}
-			out:send={{ key: notif.id }}
+			in:receive|global={{ key: notif.id }}
+			out:send|global={{ key: notif.id }}
 			animate:flip={{ duration: 200 }}
 		>
 			<span id="text">{notif.text}</span>

@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"sk": "svelte-kit",
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
 		"package": "svelte-kit package",
@@ -17,8 +18,9 @@
 	"devDependencies": {
 		"@novacbn/svelte-codejar": "^0.1.2",
 		"@playwright/test": "^1.21.0",
-		"@sveltejs/adapter-static": "^1.0.0-next.29",
-		"@sveltejs/kit": "1.15.2",
+		"@sveltejs/adapter-static": "^3.0.0",
+		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",
 		"@typescript-eslint/parser": "^5.10.1",
 		"bijou.js": "^8.2.4",
@@ -31,7 +33,7 @@
 		"emojilib": "^3.0.6",
 		"eslint": "^7.32.0",
 		"eslint-config-prettier": "^8.3.0",
-		"eslint-plugin-svelte3": "^3.2.1",
+		"eslint-plugin-svelte3": "^4.0.0",
 		"flexsearch": "^0.7.21",
 		"highlight.js": "^11.5.1",
 		"html2canvas": "^1.4.1",
@@ -39,16 +41,16 @@
 		"lz-string": "^1.4.4",
 		"mathjs": "^10.5.0",
 		"prettier": "^2.5.1",
-		"prettier-plugin-svelte": "^2.5.0",
+		"prettier-plugin-svelte": "^2.10.1",
 		"prismjs": "^1.28.0",
-		"svelte": "^3.44.0",
-		"svelte-check": "^2.2.6",
+		"svelte": "^4.0.0",
+		"svelte-check": "^3.4.3",
 		"svelte-highlight": "^6.0.1",
-		"svelte-preprocess": "^4.10.1",
+		"svelte-preprocess": "^5.0.3",
 		"terser": "^5.12.1",
 		"tslib": "^2.3.1",
 		"twemoji": "^14.0.2",
-		"typescript": "~4.6.2"
+		"typescript": "^5.0.0"
 	},
 	"pnpm": {
 		"overrides": {

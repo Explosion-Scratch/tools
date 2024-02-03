@@ -1,22 +1,24 @@
 <script context="module">
-	import tools from '../tools.json';
-	console.log(tools);
-	export async function load({ params, url }) {
-		let id = url.pathname.split('/').slice(-1)[0];
+	throw new Error("@migration task: Check code was safely removed (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292722)");
 
-		let found = tools.find((i) => i.id.toLowerCase() === id.toLowerCase());
-		if (!found) {
-			return {
-				tool: {}
-			};
-		}
-		console.log(found);
-		return {
-			props: {
-				tool: found
-			}
-		};
-	}
+	// import tools from '../tools.json';
+	// console.log(tools);
+	// export async function load({ params, url }) {
+	// 	let id = url.pathname.split('/').slice(-1)[0];
+
+	// 	let found = tools.find((i) => i.id.toLowerCase() === id.toLowerCase());
+	// 	if (!found) {
+	// 		return {
+	// 			tool: {}
+	// 		};
+	// 	}
+	// 	console.log(found);
+	// 	return {
+	// 		props: {
+	// 			tool: found
+	// 		}
+	// 	};
+	// }
 </script>
 
 <script>

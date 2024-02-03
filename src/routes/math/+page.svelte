@@ -1,5 +1,5 @@
 <script>
-	import { loading } from '../store.js';
+	import { loading } from '../../store.js';
 	import Result from '$components/MathResult.svelte';
 	let result = null;
 	let value = String.raw`x = 3, y = x^2`;

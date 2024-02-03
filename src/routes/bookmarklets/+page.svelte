@@ -7,7 +7,7 @@
 	import confetti from 'canvas-confetti';
 	let searchQuery = '';
 	let bookmarklets;
-	import { loading } from '../store.js';
+	import { loading } from '../../store.js';
 	import { flip } from 'svelte/animate';
 	import { fly, fade, scale } from 'svelte/transition';
 	import { debounce } from 'bijou.js';
@@ -139,7 +139,7 @@
 			{/each}
 		</div>
 	{:catch e}
-		<span class="error" transition:fly={{ y: 20, duration: 500 }}
+		<span class="error" transition:fly|global={{ y: 20, duration: 500 }}
 			>There was an error{#if e}: <b>{e}</b>{/if}</span
 		>
 	{/await}
@@ -152,8 +152,8 @@
 	<script src="https://cdn.jsdelivr.net/npm/terser/dist/bundle.min.js"></script>
 </svelte:head>
 {#if POPUP.open}
-	<div id="popup_bg" transition:fade on:click={() => (POPUP.open = false)} />
-	<div id="popup" transition:fly={{ y: 20, duration: 500 }}>
+	<div id="popup_bg" transition:fade|global on:click={() => (POPUP.open = false)} />
+	<div id="popup" transition:fly|global={{ y: 20, duration: 500 }}>
 		<div class="close" on:click={() => (POPUP.open = false)}>
 			<!-- @prettier-ignore -->
 			<svg

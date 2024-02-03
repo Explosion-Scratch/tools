@@ -7,7 +7,7 @@
 	let page = 'input';
 	import notifications from '$helpers/toast';
 	import { copy } from 'bijou.js';
-	import { loading } from '../store.js';
+	import { loading } from '../../store.js';
 	let url;
 	let doi = '10.1126/science.169.3946.635';
 	let article, blob;

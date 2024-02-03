@@ -1,6 +1,6 @@
 <script>
 	import Tags from '$components/Tags.svelte';
-	import { loading } from '../store.js';
+	import { loading } from '../../store.js';
 	import toast from '$helpers/toast.js';
 	import ToastContainer from '$components/ToastContainer.svelte';
 	import SlideButton from '$components/SlideButton.svelte';

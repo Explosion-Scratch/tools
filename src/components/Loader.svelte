@@ -5,7 +5,7 @@
 	export let color2 = '#333';
 </script>
 
-<div transition:fade class="loader_container">
+<div transition:fade|global class="loader_container">
 	<span style="--color1: {color1}; color2: {color2}" class="loader" />
 </div>
 
