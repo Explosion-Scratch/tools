@@ -8,7 +8,7 @@
 			def = [];
 		}
 		def = await fetch(
-			`https://cors.explosionscratc.repl.co/api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(
+			`https://cors.explosion.workers.dev/?https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(
 				word
 			)}`
 		).then((r) => r.json());
