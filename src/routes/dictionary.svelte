@@ -1,5 +1,6 @@
 <script>
 	import _$ from 'bijou.js';
+	import { onMount } from 'svelte';
 	let word = 'smile';
 	let def = [];
 	lookup();
@@ -17,6 +18,12 @@
 		}
 	}
 
+	onMount(() => {
+		if (new URLSearchParams(location.search).get('q')){
+			word = new URLSearchParams(location.search).get('q');
+		}
+	})
+
 	function play(audio) {
 		console.log(audio);
 		if (!audio) {
@@ -26,6 +33,7 @@
 		el.src = audio;
 		el.onload = () => el.remove();
 		document.body.appendChild(el);
+		el.onended = () => el.remove();
 		return () => el.play();
 	}
 </script>
