@@ -47,7 +47,7 @@
 		u.search = p;
 		history.replaceState({}, '', u);
 		console.log({ url, article, doi });
-		fetch(`https://cors.explosionscratc.repl.co/${url.split("//")[1]}`).then(r => r.blob()).then(b => {
+		fetch(`https://cors.explosion.workers.dev/?${url}`).then(r => r.blob()).then(b => {
 			//Create blob URL
 			blob = URL.createObjectURL(blob);
 		});
