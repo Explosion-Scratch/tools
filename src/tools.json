@@ -57,6 +57,6 @@
 	{
 		"name": "Max Flow Visualizer",
 		"description": "Visualize Ford-Fulkerson Max Flow",
-		"id": "bellmanford"
+		"id": "ff-visualizer"
 	}
 ]

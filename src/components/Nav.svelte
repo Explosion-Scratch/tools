@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	let path = '/nonexistant';
-	let disallowed = ['beautify', '', 'blank', 'bellmanford'];
+	let disallowed = ['beautify', '', 'blank', 'ff-visualizer'];
 	onMount(() => {
 		setInterval(() => {
 			path = location.pathname.replace(/\/$/, '').split('/').slice(-1)[0];
