@@ -53,5 +53,10 @@
 		"name": "Hash calculator",
 		"description": "Calculate MD5, SHA, and many other hashes of a string",
 		"id": "hash"
+	},
+	{
+		"name": "Bellman Ford algorithm visualizer",
+		"description": "Visualize the Bellman-Ford shortest path algorithm step by step.",
+		"id": "bellmanford"
 	}
 ]
