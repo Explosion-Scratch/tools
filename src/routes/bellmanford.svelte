@@ -3,7 +3,7 @@
 </script>
 
 <div class="wrap">
-	<iframe src="{base}/bellman-ford-visualizer.html" title="Bellman Ford algorithm visualizer" />
+	<iframe src="{base}/bellman-ford-visualizer.html" title="Max Flow Visualizer" />
 </div>
 
 <style>

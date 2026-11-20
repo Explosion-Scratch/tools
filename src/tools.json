@@ -55,8 +55,8 @@
 		"id": "hash"
 	},
 	{
-		"name": "Bellman Ford algorithm visualizer",
-		"description": "Visualize the Bellman-Ford shortest path algorithm step by step.",
+		"name": "Max Flow Visualizer",
+		"description": "Visualize Ford-Fulkerson Max Flow",
 		"id": "bellmanford"
 	}
 ]

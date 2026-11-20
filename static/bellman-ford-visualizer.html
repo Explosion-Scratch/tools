@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Max-Flow · Bellman-Ford</title>
+        <title>Max Flow Visualizer</title>
 
         <!-- Fonts: Plus Jakarta Sans (clean UI) + Fira Code (numbers, capacities, distances, equations) -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -210,9 +210,9 @@
                         <span
                             class="font-semibold text-[13.5px] sm:text-sm tracking-tight text-[#1F2328] whitespace-nowrap"
                         >
-                            Max-Flow
+                            Max Flow
                             <span class="text-[#8E95A0] font-normal">·</span>
-                            Bellman-Ford
+                            Ford-Fulkerson
                         </span>
                     </div>
 
@@ -437,8 +437,7 @@
                             <span
                                 class="font-mono text-[11px] font-semibold tracking-wide text-[#6C737F] bg-[#FAF9F5]/90 px-2 py-0.5 rounded-md border border-[#E5E0D4]"
                             >
-                                {{ viewMode === 'unified' ? 'Flow G + Residual
-                                Gf' : 'Flow G' }}
+                                {{ viewMode === 'unified' ? 'Flow G + Residual Gf' : 'Flow G' }}
                             </span>
                         </div>
 
@@ -1029,7 +1028,7 @@
                                 />
                             </g>
 
-                            <!-- Synchronized Nodes with Bellman-Ford d=k Badges -->
+                            <!-- Synchronized Nodes with shortest-path d=k Badges -->
                             <g
                                 v-for="n in renderNodes"
                                 :key="n.id"
@@ -1093,7 +1092,7 @@
                                     {{ n.label }}
                                 </text>
 
-                                <!-- Bellman-Ford Distance Badge d=k -->
+                                <!-- Shortest-Path Distance Badge d=k -->
                                 <g
                                     v-if="n.distLabel"
                                     :transform="`translate(${NODE_R - 2}, ${-NODE_R + 2})`"
@@ -1212,7 +1211,7 @@
                     <div class="flex items-center justify-between mb-1.5 px-1">
                         <span
                             class="font-mono text-[11px] font-bold text-[#1F2328]"
-                            >Bellman-Ford dist[]</span
+                            >dist[]</span
                         >
                         <button
                             @click="showDistPopover = false"
@@ -1413,7 +1412,7 @@
                     </button>
                     <button
                         @click="showDistPopover = !showDistPopover"
-                        title="Toggle Bellman-Ford dist[] table"
+                        title="Toggle dist[] table"
                         class="h-8 px-2.5 rounded-lg border font-mono text-[11px] font-semibold transition"
                         :class="showDistPopover
             ? 'bg-[#1F2328] text-[#FAF9F5] border-[#1F2328]'
@@ -1934,7 +1933,7 @@
             };
 
             /* =========================================================================
-       4. SIMPLE BELLMAN-FORD MAX-FLOW TRACE ENGINE
+       4. FORD-FULKERSON MAX-FLOW TRACE ENGINE
        ========================================================================= */
             function buildResidual(edges, flows) {
                 const list = [];
@@ -2024,7 +2023,7 @@
                     let pred = freshPred();
                     const curFlow = calcFlow();
 
-                    // Simple Bellman-Ford: up to |V| - 1 relaxation passes with unit hop weight 1
+                    // Shortest augmenting path: up to |V| - 1 relaxation passes with unit hop weight 1
                     for (let k = 1; k <= Math.max(1, V - 1); k++) {
                         const prevDist = { ...dist };
                         const nextDist = { ...dist };
