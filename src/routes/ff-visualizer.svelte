@@ -3,7 +3,7 @@
 </script>
 
 <div class="wrap">
-	<iframe src="{base}/ff-visualizer.html" title="Max Flow Visualizer" />
+	<iframe src="{base}/ff-visualizer-app.html" title="Max Flow Visualizer" />
 </div>
 
 <style>
