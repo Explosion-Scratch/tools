@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	let word = 'smile';
 	let def = [];
-	lookup();
 	async function lookup() {
 		if (!word.trim().length) {
 			def = [];
@@ -19,10 +18,11 @@
 	}
 
 	onMount(() => {
-		if (new URLSearchParams(location.search).get('q')){
+		if (new URLSearchParams(location.search).get('q')) {
 			word = new URLSearchParams(location.search).get('q');
 		}
-	})
+		lookup();
+	});
 
 	function play(audio) {
 		console.log(audio);
