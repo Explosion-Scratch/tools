@@ -1,0 +1,3293 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Max Flow Visualizer</title>
+
+        <!-- Fonts: Plus Jakarta Sans (clean UI) + Fira Code (numbers, capacities, distances, equations) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Tailwind CSS & Vue 3 via CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: [
+                                '"Plus Jakarta Sans"',
+                                "system-ui",
+                                "sans-serif",
+                            ],
+                            mono: ['"Fira Code"', "ui-monospace", "monospace"],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <style>
+            :root {
+                --paper: #faf9f5;
+                --paper-elev: #fffefb;
+                --dot: #e6e2d6;
+                --border: #dfdacd;
+                --ink: #1f2328;
+                --muted: #6c737f;
+                --blue: #2b7fff;
+                --amber: #e59a00;
+                --sage: #2e8b57;
+                --coral: #d94a4a;
+            }
+
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100vw;
+                height: 100dvh;
+                overflow: hidden;
+                background: var(--paper);
+                color: var(--ink);
+                font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            /* Strict single-viewport lock */
+            #app {
+                width: 100vw;
+                height: 100dvh;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Warm drafting paper dot grid */
+            .drafting-paper {
+                background-color: var(--paper);
+                background-image: radial-gradient(
+                    var(--dot) 1.15px,
+                    transparent 1.15px
+                );
+                background-size: 20px 20px;
+            }
+
+            /* Hand-drafted paper surface pill */
+            .paper-card {
+                background: rgba(255, 254, 251, 0.94);
+                backdrop-filter: blur(8px);
+                border: 1.25px solid #d9d3c5;
+                box-shadow:
+                    0 3px 12px rgba(31, 35, 40, 0.06),
+                    1.5px 2px 0 rgba(31, 35, 40, 0.04);
+            }
+
+            /* SVG interaction safeguards */
+            svg.graph-svg {
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: none;
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+
+            .node-hit {
+                cursor: grab;
+                user-select: none;
+                touch-action: none;
+            }
+            .node-hit:active {
+                cursor: grabbing;
+            }
+            .edge-hit {
+                cursor: pointer;
+            }
+
+            /* Subtle hand-sketched motion */
+            @keyframes flowDroplets {
+                from {
+                    stroke-dashoffset: 36;
+                }
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+            @keyframes cutMarch {
+                from {
+                    stroke-dashoffset: 24;
+                }
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+            @keyframes gentlePulse {
+                0%,
+                100% {
+                    opacity: 0.92;
+                }
+                50% {
+                    opacity: 0.52;
+                }
+            }
+
+            .anim-flow {
+                animation: flowDroplets 1.25s linear infinite;
+            }
+            .anim-path {
+                stroke-dasharray: 5 11;
+                animation: flowDroplets 0.9s linear infinite;
+            }
+            .anim-cut {
+                stroke-dasharray: 8 6;
+                animation: cutMarch 1.4s linear infinite;
+            }
+            .anim-pulse {
+                animation: gentlePulse 1.5s ease-in-out infinite;
+            }
+
+            /* Custom subtle select chevron */
+            select.paper-select {
+                appearance: none;
+                -webkit-appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236C737F' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 9px center;
+                padding-right: 26px;
+            }
+
+            [v-cloak] {
+                display: none !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app" v-cloak>
+            <!-- ===================================================================
+         1. SINGLE SLIM TOP BAR (48px)
+         =================================================================== -->
+            <header
+                class="h-12 shrink-0 w-full border-b border-[#DFDACD] bg-[#FFFEFB]/95 px-3 sm:px-4 flex items-center justify-between gap-2 z-30"
+            >
+                <!-- Left: Crisp Title + Preset Dropdown -->
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <svg
+                            class="w-5 h-5 text-[#1F2328]"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.9"
+                            stroke-linecap="round"
+                        >
+                            <circle cx="5" cy="12" r="2.8" />
+                            <circle cx="19" cy="12" r="2.8" />
+                            <circle cx="12" cy="5.5" r="2.2" />
+                            <circle cx="12" cy="18.5" r="2.2" />
+                            <path
+                                d="M7.5 10.2 10 7.2M14 7.2l2.5 3M7.5 13.8 10 16.8M14 16.8l2.5-3"
+                            />
+                            <path
+                                d="M12 8v8"
+                                stroke="#D94A4A"
+                                stroke-dasharray="2.2 2.2"
+                            />
+                        </svg>
+                        <span
+                            class="font-semibold text-[13.5px] sm:text-sm tracking-tight text-[#1F2328] whitespace-nowrap"
+                        >
+                            Max Flow
+                            <span class="text-[#8E95A0] font-normal">·</span>
+                            Ford-Fulkerson
+                        </span>
+                    </div>
+
+                    <span class="h-4 w-px bg-[#E3DED2] hidden sm:block"></span>
+
+                    <select
+                        aria-label="Graph Preset"
+                        :value="presetKey"
+                        @change="loadPreset($event.target.value)"
+                        class="paper-select h-8 rounded-lg border border-[#D9D3C5] bg-[#FAF9F5] hover:bg-[#F3EFE5] text-xs font-medium text-[#1F2328] pl-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2B7FFF]/30 transition max-w-[155px] sm:max-w-none"
+                    >
+                        <option
+                            v-for="p in presetList"
+                            :key="p.key"
+                            :value="p.key"
+                        >
+                            {{ p.label }}
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Right: Split|Unified Segmented Toggle + Show Cut + Undo + Reset -->
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- Segmented View Toggle -->
+                    <div
+                        class="inline-flex h-8 p-0.5 rounded-lg bg-[#EFECE3] border border-[#DDD7C9] text-xs font-medium"
+                    >
+                        <button
+                            @click="viewMode = 'split'"
+                            class="px-2.5 rounded-md transition-all"
+                            :class="viewMode === 'split'
+              ? 'bg-[#FFFEFB] text-[#1F2328] shadow-xs font-semibold'
+              : 'text-[#6C737F] hover:text-[#1F2328]'"
+                        >
+                            Split
+                        </button>
+                        <button
+                            @click="viewMode = 'unified'"
+                            class="px-2.5 rounded-md transition-all"
+                            :class="viewMode === 'unified'
+              ? 'bg-[#FFFEFB] text-[#1F2328] shadow-xs font-semibold'
+              : 'text-[#6C737F] hover:text-[#1F2328]'"
+                        >
+                            Unified
+                        </button>
+                    </div>
+
+                    <!-- Prominent Show Cut Toggle -->
+                    <button
+                        @click="showCut = !showCut"
+                        title="Toggle Min-Cut (C)"
+                        class="h-8 px-2.5 sm:px-3 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all"
+                        :class="showCut
+            ? 'bg-[#FCECEB] border-[#D94A4A] text-[#B83232] shadow-xs'
+            : 'bg-[#FFFEFB] border-[#D9D3C5] text-[#1F2328] hover:bg-[#F4F0E7]'"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5 shrink-0"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.1"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle cx="6" cy="6" r="3" />
+                            <circle cx="6" cy="18" r="3" />
+                            <path
+                                d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"
+                            />
+                        </svg>
+                        <span class="whitespace-nowrap">Show Cut</span>
+                    </button>
+
+                    <!-- Undo -->
+                    <button
+                        @click="undo"
+                        :disabled="undoStack.length === 0"
+                        title="Undo (Ctrl/Cmd+Z)"
+                        class="w-8 h-8 rounded-lg border border-[#D9D3C5] bg-[#FFFEFB] text-[#1F2328] hover:bg-[#F3EFE5] disabled:opacity-35 flex items-center justify-center transition"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.1"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M9 14 4 9l5-5" />
+                            <path
+                                d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"
+                            />
+                        </svg>
+                    </button>
+
+                    <!-- Reset -->
+                    <button
+                        @click="resetPreset"
+                        title="Reset Preset"
+                        class="w-8 h-8 rounded-lg border border-[#D9D3C5] bg-[#FFFEFB] text-[#1F2328] hover:bg-[#F3EFE5] flex items-center justify-center transition"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.1"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                            />
+                            <path d="M3 3v5h5" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- ===================================================================
+         2. FULL-BLEED SKETCHED DRAFTING CANVAS (flex: 1; min-height: 0)
+         =================================================================== -->
+            <main
+                ref="canvasWrapRef"
+                class="flex-1 min-h-0 relative drafting-paper overflow-hidden flex"
+            >
+                <!-- TOP-LEFT FLOATING COMPACT TOOL PILL (32px height, 3 tools only) -->
+                <div
+                    class="absolute top-3 left-3 z-20 paper-card h-8 rounded-full px-1 flex items-center gap-0.5"
+                >
+                    <button
+                        v-for="t in tools"
+                        :key="t.id"
+                        @click="setTool(t.id)"
+                        :title="t.title"
+                        class="h-6 px-2.5 rounded-full text-[11.5px] font-semibold flex items-center gap-1.5 transition-all"
+                        :class="activeTool === t.id
+            ? (t.id === 'erase'
+                ? 'bg-[#D94A4A] text-white'
+                : 'bg-[#1F2328] text-[#FAF9F5]')
+            : 'text-[#555D68] hover:bg-[#F1EDE3] hover:text-[#1F2328]'"
+                    >
+                        <span class="text-xs leading-none">{{ t.icon }}</span>
+                        <span>{{ t.label }}</span>
+                    </button>
+                </div>
+
+                <!-- TOP-RIGHT FLOATING LIVE TELEMETRY & MIN-CUT EQUATION BADGE -->
+                <div
+                    class="absolute top-3 right-3 z-20 flex flex-col items-end gap-1.5 pointer-events-none max-w-[calc(100%-240px)]"
+                >
+                    <div
+                        class="paper-card rounded-xl px-3 py-1.5 flex items-center gap-2.5 pointer-events-auto"
+                    >
+                        <div
+                            class="flex items-center gap-1.5 font-mono text-xs font-semibold text-[#1F2328]"
+                        >
+                            <span
+                                class="w-2 h-2 rounded-full bg-[#2B7FFF]"
+                            ></span>
+                            <span>Flow</span>
+                            <span class="text-[#2B7FFF] font-bold"
+                                >{{ currentStep.totalFlow }}</span
+                            >
+                            <span class="text-[#9BA1AA]">/</span>
+                            <span class="text-[#1F2328]"
+                                >{{ finalMaxFlow }}</span
+                            >
+                        </div>
+
+                        <template v-if="currentStep.bottleneck !== null">
+                            <span class="h-3.5 w-px bg-[#DFDACD]"></span>
+                            <span
+                                class="font-mono text-xs font-bold px-1.5 py-0.5 rounded-md bg-[#FEF3C7] text-[#B45309] border border-[#E59A00]/35"
+                            >
+                                Δ = {{ currentStep.bottleneck }}
+                            </span>
+                        </template>
+                    </div>
+
+                    <!-- Exact Min-Cut Equation Pill (when Show Cut is ON) -->
+                    <div
+                        v-if="showCut && finalMinCut"
+                        class="paper-card rounded-xl px-3 py-1.5 border-[#D94A4A]/50 bg-[#FFFDFB]/95 pointer-events-auto"
+                    >
+                        <div
+                            class="font-mono text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 flex-wrap justify-end"
+                        >
+                            <span class="text-[#D94A4A]">Min-Cut c(S,T)</span>
+                            <span class="text-[#6C737F]">=</span>
+                            <span class="text-[#1F2328]"
+                                >{{ minCutEquationTerms }}</span
+                            >
+                            <span class="text-[#6C737F]">=</span>
+                            <span class="text-[#2E8B57] font-bold"
+                                >{{ finalMinCut.cap }}</span
+                            >
+                            <span class="text-[#6C737F]">=</span>
+                            <span class="text-[#2B7FFF] font-bold"
+                                >Max Flow</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPLIT OR UNIFIED SVG WORKSPACE -->
+                <div
+                    class="w-full h-full grid min-h-0"
+                    :class="viewMode === 'split' ? 'grid-cols-2' : 'grid-cols-1'"
+                >
+                    <!-- ==================== PANE 1: FLOW G (OR UNIFIED) ==================== -->
+                    <div
+                        class="relative w-full h-full min-w-0 min-h-0 overflow-hidden"
+                        :class="viewMode === 'split' ? 'border-r border-dashed border-[#D3CDBD]' : ''"
+                    >
+                        <!-- Subtle Pane Tag (bottom-left to avoid top toolbar collision) -->
+                        <div
+                            class="absolute bottom-2.5 left-3 z-10 pointer-events-none flex items-center gap-2"
+                        >
+                            <span
+                                class="font-mono text-[11px] font-semibold tracking-wide text-[#6C737F] bg-[#FAF9F5]/90 px-2 py-0.5 rounded-md border border-[#E5E0D4]"
+                            >
+                                {{ viewMode === 'unified' ? 'Flow G + Residual Gf' : 'Flow G' }}
+                            </span>
+                        </div>
+
+                        <svg
+                            viewBox="0 0 600 420"
+                            preserveAspectRatio="xMidYMid meet"
+                            class="graph-svg"
+                            :class="svgCursorClass"
+                            @pointerdown="onSvgBgPointerDown"
+                            @dblclick="onSvgDblClick"
+                        >
+                            <!-- Subtle Min-Cut Divider Contour -->
+                            <g
+                                v-if="showCut && cutVisual"
+                                pointer-events="none"
+                            >
+                                <path
+                                    :d="cutVisual.dividerD"
+                                    fill="none"
+                                    stroke="#F5B7B7"
+                                    stroke-width="8"
+                                    stroke-linecap="round"
+                                    opacity="0.38"
+                                />
+                                <path
+                                    :d="cutVisual.dividerD"
+                                    fill="none"
+                                    stroke="#D94A4A"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    class="anim-cut"
+                                    opacity="0.82"
+                                />
+                            </g>
+
+                            <!-- Flow Network Edges -->
+                            <g v-for="e in flowRenderEdges" :key="e.id">
+                                <!-- Augmenting path amber highlighter wash -->
+                                <path
+                                    v-if="e.onPath"
+                                    :d="e.pathD"
+                                    fill="none"
+                                    :stroke="e.isBottleneck ? '#FCD34D' : '#FDE68A'"
+                                    :stroke-width="e.pipeW + 10"
+                                    stroke-linecap="round"
+                                    opacity="0.88"
+                                    class="anim-pulse"
+                                />
+
+                                <!-- Hover highlight -->
+                                <path
+                                    v-if="hoveredEdgeId === e.id"
+                                    :d="e.pathD"
+                                    fill="none"
+                                    stroke="#BFDBFE"
+                                    :stroke-width="e.pipeW + 7"
+                                    stroke-linecap="round"
+                                    opacity="0.7"
+                                />
+
+                                <!-- Drafted pipe outer channel -->
+                                <path
+                                    :d="e.pathD"
+                                    fill="none"
+                                    stroke="#EAE5D8"
+                                    :stroke-width="e.pipeW"
+                                    stroke-linecap="round"
+                                />
+
+                                <!-- Watercolor sky-blue flow fill proportional to f/c -->
+                                <path
+                                    v-if="e.flow > 0"
+                                    :d="e.pathD"
+                                    fill="none"
+                                    :stroke="e.isCutCrossing ? '#F8B4B4' : '#93C5FD'"
+                                    :stroke-width="e.fillW"
+                                    stroke-linecap="round"
+                                    opacity="0.92"
+                                />
+
+                                <!-- Animated flow droplets proportional to flow -->
+                                <path
+                                    v-if="e.flow > 0"
+                                    :d="e.pathD"
+                                    fill="none"
+                                    :stroke="e.isCutCrossing ? '#D94A4A' : '#2B7FFF'"
+                                    :stroke-width="Math.max(1.8, e.fillW * 0.44)"
+                                    :stroke-dasharray="e.dropletDash"
+                                    stroke-linecap="round"
+                                    class="anim-flow"
+                                    opacity="0.82"
+                                />
+
+                                <!-- Active augmenting path marching highlight -->
+                                <path
+                                    v-if="e.onPath"
+                                    :d="e.pathD"
+                                    fill="none"
+                                    :stroke="e.pathType === 'backward' ? '#D94A4A' : '#B45309'"
+                                    stroke-width="2.2"
+                                    stroke-linecap="round"
+                                    class="anim-path"
+                                />
+
+                                <!-- Deterministic hand-sketched double ink spine -->
+                                <path
+                                    :d="e.sketch1"
+                                    fill="none"
+                                    :stroke="e.inkColor"
+                                    :stroke-width="e.isCutCrossing || e.onPath ? 2.1 : 1.55"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    :d="e.sketch2"
+                                    fill="none"
+                                    :stroke="e.inkColor"
+                                    stroke-width="0.9"
+                                    stroke-linecap="round"
+                                    opacity="0.42"
+                                />
+
+                                <!-- Hand-sketched V arrowhead -->
+                                <path
+                                    :d="e.arrowD"
+                                    fill="none"
+                                    :stroke="e.inkColor"
+                                    stroke-width="1.85"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <!-- Crisp hand-sketched coral cut-slashes (//) across Min-Cut edges -->
+                                <g
+                                    v-if="e.isCutCrossing && e.cutSlashD"
+                                    pointer-events="none"
+                                >
+                                    <path
+                                        :d="e.cutSlashD"
+                                        fill="none"
+                                        stroke="#FAF9F5"
+                                        stroke-width="5"
+                                        stroke-linecap="round"
+                                    />
+                                    <path
+                                        :d="e.cutSlashD"
+                                        fill="none"
+                                        stroke="#D94A4A"
+                                        stroke-width="2.3"
+                                        stroke-linecap="round"
+                                    />
+                                </g>
+
+                                <!-- Wide invisible hit target -->
+                                <path
+                                    :d="e.pathD"
+                                    fill="none"
+                                    stroke="transparent"
+                                    stroke-width="22"
+                                    class="edge-hit"
+                                    @pointerenter="hoveredEdgeId = e.id"
+                                    @pointerleave="hoveredEdgeId = null"
+                                    @click.stop="onEdgeClick($event, e)"
+                                    @wheel.prevent="onEdgeWheel($event, e)"
+                                />
+
+                                <!-- f/c capacity label pill -->
+                                <g
+                                    :transform="`translate(${e.midX}, ${e.midY})`"
+                                    class="edge-hit"
+                                    @pointerenter="hoveredEdgeId = e.id"
+                                    @pointerleave="hoveredEdgeId = null"
+                                    @click.stop="onEdgeClick($event, e)"
+                                    @wheel.prevent="onEdgeWheel($event, e)"
+                                >
+                                    <rect
+                                        :x="-e.pillW / 2"
+                                        y="-10.5"
+                                        :width="e.pillW"
+                                        height="21"
+                                        rx="6.5"
+                                        :fill="e.isCutCrossing ? '#FCECEB' : (e.onPath ? '#FEF3C7' : (e.saturated ? '#EFF6FF' : '#FFFEFB'))"
+                                        :stroke="e.isCutCrossing ? '#D94A4A' : (e.onPath ? '#E59A00' : (e.saturated ? '#2B7FFF' : '#CBC5B7'))"
+                                        :stroke-width="e.onPath || e.isCutCrossing || hoveredEdgeId === e.id ? 1.7 : 1.2"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3.8"
+                                        class="font-mono text-[10.5px] font-semibold"
+                                        :fill="e.isCutCrossing ? '#B83232' : (e.saturated ? '#1D4ED8' : '#1F2328')"
+                                    >
+                                        {{ e.flow }}/{{ e.cap }}
+                                    </text>
+                                    <!-- Bottleneck Δ micro-tag -->
+                                    <g
+                                        v-if="e.isBottleneck"
+                                        transform="translate(0, -18)"
+                                        pointer-events="none"
+                                    >
+                                        <rect
+                                            x="-15"
+                                            y="-7.5"
+                                            width="30"
+                                            height="14"
+                                            rx="4"
+                                            fill="#E59A00"
+                                        />
+                                        <text
+                                            text-anchor="middle"
+                                            dy="2.5"
+                                            class="font-mono text-[8.5px] font-bold"
+                                            fill="#FFF"
+                                        >
+                                            Δ={{ currentStep.bottleneck }}
+                                        </text>
+                                    </g>
+                                </g>
+                            </g>
+
+                            <!-- Unified Mode Overlay: Backward Reroute Arcs + Relaxed Forward Residual Arcs -->
+                            <g v-if="viewMode === 'unified'">
+                                <g
+                                    v-for="re in residualRenderEdges"
+                                    :key="re.resId"
+                                >
+                                    <template
+                                        v-if="re.type === 'backward' || re.relaxed || re.onPath"
+                                    >
+                                        <path
+                                            v-if="re.relaxed"
+                                            :d="re.pathD"
+                                            fill="none"
+                                            stroke="#BBF7D0"
+                                            stroke-width="9"
+                                            stroke-linecap="round"
+                                        />
+                                        <path
+                                            :d="re.sketch1"
+                                            fill="none"
+                                            :stroke="re.strokeColor"
+                                            :stroke-width="re.onPath || re.relaxed ? 2.2 : 1.65"
+                                            :stroke-dasharray="re.type === 'backward' ? '5 4.5' : 'none'"
+                                            stroke-linecap="round"
+                                        />
+                                        <path
+                                            :d="re.arrowD"
+                                            fill="none"
+                                            :stroke="re.strokeColor"
+                                            stroke-width="1.75"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                        <g
+                                            :transform="`translate(${re.midX}, ${re.midY})`"
+                                            pointer-events="none"
+                                        >
+                                            <rect
+                                                :x="-re.pillW / 2"
+                                                y="-9"
+                                                :width="re.pillW"
+                                                height="18"
+                                                rx="5.5"
+                                                :fill="re.type === 'backward' ? '#FCECEB' : (re.relaxed ? '#DCFCE7' : '#FEF3C7')"
+                                                :stroke="re.strokeColor"
+                                                stroke-width="1.15"
+                                            />
+                                            <text
+                                                text-anchor="middle"
+                                                dy="3.3"
+                                                class="font-mono text-[9.5px] font-semibold"
+                                                :fill="re.strokeColor"
+                                            >
+                                                {{ re.label }}
+                                            </text>
+                                        </g>
+                                    </template>
+                                </g>
+                            </g>
+
+                            <!-- Live Rubber-Band Edge Preview (derived in same viewBox space) -->
+                            <g v-if="connectPreview" pointer-events="none">
+                                <path
+                                    :d="connectPreview.d"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2.1"
+                                    stroke-dasharray="5 4"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    v-if="connectPreview.arrowD"
+                                    :d="connectPreview.arrowD"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </g>
+
+                            <!-- Sketched Nodes -->
+                            <g
+                                v-for="n in renderNodes"
+                                :key="n.id"
+                                :transform="`translate(${n.x}, ${n.y})`"
+                                class="node-hit"
+                                @pointerdown.stop="onNodePointerDown($event, n)"
+                            >
+                                <!-- Snap target ring when drawing an edge -->
+                                <circle
+                                    v-if="connectState?.snapNodeId === n.id"
+                                    :r="NODE_R + 8"
+                                    fill="#DBEAFE"
+                                    fill-opacity="0.55"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2"
+                                    stroke-dasharray="4 3"
+                                />
+
+                                <!-- Active origin ring in Edge tool -->
+                                <circle
+                                    v-if="connectState?.originId === n.id || pendingEdgeOriginId === n.id"
+                                    :r="NODE_R + 6"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="1.8"
+                                    stroke-dasharray="4 3"
+                                />
+
+                                <!-- Watercolor node wash -->
+                                <circle :r="NODE_R - 1" :fill="n.flowFill" />
+
+                                <!-- Double-stroke deterministic sketched circle -->
+                                <path
+                                    :d="n.circle1"
+                                    fill="none"
+                                    :stroke="n.flowStroke"
+                                    :stroke-width="n.isEndpoint ? 2.2 : 1.75"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    :d="n.circle2"
+                                    fill="none"
+                                    :stroke="n.flowStroke"
+                                    stroke-width="1.05"
+                                    stroke-linecap="round"
+                                    opacity="0.5"
+                                />
+
+                                <!-- Node Label -->
+                                <text
+                                    text-anchor="middle"
+                                    dy="5"
+                                    class="font-sans text-[14px] font-bold"
+                                    :fill="n.flowStroke"
+                                >
+                                    {{ n.label }}
+                                </text>
+
+                                <!-- Tiny S / T Cut Partition Tag when Show Cut is ON -->
+                                <g
+                                    v-if="showCut && n.cutSide"
+                                    :transform="`translate(0, ${NODE_R + 11})`"
+                                    pointer-events="none"
+                                >
+                                    <rect
+                                        x="-9.5"
+                                        y="-7"
+                                        width="19"
+                                        height="14"
+                                        rx="4.5"
+                                        :fill="n.cutSide === 'S' ? '#DCFCE7' : '#FCECEB'"
+                                        :stroke="n.cutSide === 'S' ? '#2E8B57' : '#D94A4A'"
+                                        stroke-width="1.1"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3"
+                                        class="font-mono text-[9px] font-bold"
+                                        :fill="n.cutSide === 'S' ? '#1E6B40' : '#B83232'"
+                                    >
+                                        {{ n.cutSide }}
+                                    </text>
+                                </g>
+
+                                <!-- Distance Badge in Unified mode -->
+                                <g
+                                    v-if="viewMode === 'unified' && n.distLabel"
+                                    :transform="`translate(${NODE_R - 2}, ${-NODE_R + 2})`"
+                                    pointer-events="none"
+                                >
+                                    <rect
+                                        :x="-n.distW / 2"
+                                        y="-8.5"
+                                        :width="n.distW"
+                                        height="16"
+                                        rx="5"
+                                        :fill="n.justRelaxed ? '#DCFCE7' : '#FFFEFB'"
+                                        :stroke="n.justRelaxed ? '#2E8B57' : '#CCC6B8'"
+                                        :stroke-width="n.justRelaxed ? 1.5 : 1"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3"
+                                        class="font-mono text-[9px] font-semibold"
+                                        :fill="n.justRelaxed ? '#1E6B40' : (n.distInf ? '#9BA1AA' : '#1F2328')"
+                                    >
+                                        {{ n.distLabel }}
+                                    </text>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <!-- ==================== PANE 2: RESIDUAL G_f (SPLIT MODE) ==================== -->
+                    <div
+                        v-if="viewMode === 'split'"
+                        class="relative w-full h-full min-w-0 min-h-0 overflow-hidden"
+                    >
+                        <!-- Subtle Pane Tag -->
+                        <div
+                            class="absolute bottom-2.5 left-3 z-10 pointer-events-none flex items-center gap-2"
+                        >
+                            <span
+                                class="font-mono text-[11px] font-semibold tracking-wide text-[#6C737F] bg-[#FAF9F5]/90 px-2 py-0.5 rounded-md border border-[#E5E0D4]"
+                            >
+                                Residual G<sub>f</sub>
+                            </span>
+                            <span
+                                v-if="currentStep.type === 'BF_PASS'"
+                                class="font-mono text-[10.5px] font-semibold px-2 py-0.5 rounded-md bg-[#DCFCE7] text-[#1E6B40] border border-[#2E8B57]/35"
+                            >
+                                Pass {{ currentStep.pass }}
+                            </span>
+                        </div>
+
+                        <svg
+                            viewBox="0 0 600 420"
+                            preserveAspectRatio="xMidYMid meet"
+                            class="graph-svg"
+                            :class="svgCursorClass"
+                            @pointerdown="onSvgBgPointerDown"
+                            @dblclick="onSvgDblClick"
+                        >
+                            <!-- Subtle Cut Divider mirrored on G_f -->
+                            <g
+                                v-if="showCut && cutVisual"
+                                pointer-events="none"
+                            >
+                                <path
+                                    :d="cutVisual.dividerD"
+                                    fill="none"
+                                    stroke="#D94A4A"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    class="anim-cut"
+                                    opacity="0.65"
+                                />
+                            </g>
+
+                            <!-- Residual Edges (Forward c_f & Dashed Curved Backward ↺f) -->
+                            <g
+                                v-for="re in residualRenderEdges"
+                                :key="re.resId"
+                            >
+                                <!-- Sage green relaxation highlighter -->
+                                <path
+                                    v-if="re.relaxed"
+                                    :d="re.pathD"
+                                    fill="none"
+                                    stroke="#BBF7D0"
+                                    stroke-width="10"
+                                    stroke-linecap="round"
+                                    class="anim-pulse"
+                                />
+
+                                <!-- Amber augmenting path highlighter -->
+                                <path
+                                    v-if="re.onPath"
+                                    :d="re.pathD"
+                                    fill="none"
+                                    stroke="#FDE68A"
+                                    stroke-width="10"
+                                    stroke-linecap="round"
+                                    class="anim-pulse"
+                                />
+
+                                <!-- Cross-pane hover highlight -->
+                                <path
+                                    v-if="hoveredEdgeId === re.edgeId"
+                                    :d="re.pathD"
+                                    fill="none"
+                                    stroke="#BFDBFE"
+                                    stroke-width="8"
+                                    stroke-linecap="round"
+                                    opacity="0.6"
+                                />
+
+                                <!-- Sketched residual stroke -->
+                                <path
+                                    :d="re.sketch1"
+                                    fill="none"
+                                    :stroke="re.strokeColor"
+                                    :stroke-width="re.onPath || re.relaxed ? 2.3 : 1.65"
+                                    :stroke-dasharray="re.type === 'backward' ? '5.5 4.5' : 'none'"
+                                    stroke-linecap="round"
+                                />
+
+                                <!-- Animated dashes on active path -->
+                                <path
+                                    v-if="re.onPath"
+                                    :d="re.pathD"
+                                    fill="none"
+                                    :stroke="re.type === 'backward' ? '#D94A4A' : '#B45309'"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    class="anim-path"
+                                />
+
+                                <!-- Sketched arrowhead -->
+                                <path
+                                    :d="re.arrowD"
+                                    fill="none"
+                                    :stroke="re.strokeColor"
+                                    stroke-width="1.8"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <!-- Hit area -->
+                                <path
+                                    :d="re.pathD"
+                                    fill="none"
+                                    stroke="transparent"
+                                    stroke-width="18"
+                                    class="edge-hit"
+                                    @pointerenter="hoveredEdgeId = re.edgeId"
+                                    @pointerleave="hoveredEdgeId = null"
+                                    @click.stop="onResidualEdgeClick($event, re)"
+                                />
+
+                                <!-- Residual capacity pill -->
+                                <g
+                                    :transform="`translate(${re.midX}, ${re.midY})`"
+                                    class="edge-hit"
+                                    @pointerenter="hoveredEdgeId = re.edgeId"
+                                    @pointerleave="hoveredEdgeId = null"
+                                    @click.stop="onResidualEdgeClick($event, re)"
+                                >
+                                    <rect
+                                        :x="-re.pillW / 2"
+                                        y="-9.5"
+                                        :width="re.pillW"
+                                        height="19"
+                                        rx="5.5"
+                                        :fill="re.onPath ? '#FEF3C7' : (re.relaxed ? '#DCFCE7' : (re.type === 'backward' ? '#FCECEB' : '#FFFEFB'))"
+                                        :stroke="re.strokeColor"
+                                        :stroke-width="re.onPath || re.relaxed ? 1.55 : 1.15"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3.5"
+                                        class="font-mono text-[10px] font-semibold"
+                                        :fill="re.strokeColor"
+                                    >
+                                        {{ re.label }}
+                                    </text>
+                                </g>
+                            </g>
+
+                            <!-- Live Rubber-Band Edge Preview mirrored cleanly -->
+                            <g v-if="connectPreview" pointer-events="none">
+                                <path
+                                    :d="connectPreview.d"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2.1"
+                                    stroke-dasharray="5 4"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    v-if="connectPreview.arrowD"
+                                    :d="connectPreview.arrowD"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+                            </g>
+
+                            <!-- Synchronized Nodes with shortest-path d=k Badges -->
+                            <g
+                                v-for="n in renderNodes"
+                                :key="n.id"
+                                :transform="`translate(${n.x}, ${n.y})`"
+                                class="node-hit"
+                                @pointerdown.stop="onNodePointerDown($event, n)"
+                            >
+                                <!-- Relaxation sage glow -->
+                                <circle
+                                    v-if="n.justRelaxed"
+                                    :r="NODE_R + 7"
+                                    fill="#DCFCE7"
+                                    opacity="0.8"
+                                    class="anim-pulse"
+                                />
+
+                                <!-- Snap target ring -->
+                                <circle
+                                    v-if="connectState?.snapNodeId === n.id"
+                                    :r="NODE_R + 8"
+                                    fill="#DBEAFE"
+                                    fill-opacity="0.55"
+                                    stroke="#2B7FFF"
+                                    stroke-width="2"
+                                    stroke-dasharray="4 3"
+                                />
+
+                                <circle
+                                    v-if="connectState?.originId === n.id || pendingEdgeOriginId === n.id"
+                                    :r="NODE_R + 6"
+                                    fill="none"
+                                    stroke="#2B7FFF"
+                                    stroke-width="1.8"
+                                    stroke-dasharray="4 3"
+                                />
+
+                                <circle :r="NODE_R - 1" :fill="n.resFill" />
+
+                                <path
+                                    :d="n.circle1"
+                                    fill="none"
+                                    :stroke="n.resStroke"
+                                    :stroke-width="n.isEndpoint ? 2.2 : 1.75"
+                                    stroke-linecap="round"
+                                />
+                                <path
+                                    :d="n.circle2"
+                                    fill="none"
+                                    :stroke="n.resStroke"
+                                    stroke-width="1.05"
+                                    stroke-linecap="round"
+                                    opacity="0.5"
+                                />
+
+                                <text
+                                    text-anchor="middle"
+                                    dy="5"
+                                    class="font-sans text-[14px] font-bold"
+                                    :fill="n.resStroke"
+                                >
+                                    {{ n.label }}
+                                </text>
+
+                                <!-- Shortest-Path Distance Badge d=k -->
+                                <g
+                                    v-if="n.distLabel"
+                                    :transform="`translate(${NODE_R - 2}, ${-NODE_R + 2})`"
+                                    pointer-events="none"
+                                >
+                                    <rect
+                                        :x="-n.distW / 2"
+                                        y="-8.5"
+                                        :width="n.distW"
+                                        height="16"
+                                        rx="5"
+                                        :fill="n.justRelaxed ? '#DCFCE7' : '#FFFEFB'"
+                                        :stroke="n.justRelaxed ? '#2E8B57' : '#CBC5B7'"
+                                        :stroke-width="n.justRelaxed ? 1.5 : 1.1"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3"
+                                        class="font-mono text-[9.5px] font-semibold"
+                                        :fill="n.justRelaxed ? '#1E6B40' : (n.distInf ? '#9BA1AA' : '#1F2328')"
+                                    >
+                                        {{ n.distLabel }}
+                                    </text>
+                                </g>
+
+                                <!-- Tiny S / T tag mirrored when Show Cut is ON -->
+                                <g
+                                    v-if="showCut && n.cutSide"
+                                    :transform="`translate(0, ${NODE_R + 11})`"
+                                    pointer-events="none"
+                                >
+                                    <rect
+                                        x="-9.5"
+                                        y="-7"
+                                        width="19"
+                                        height="14"
+                                        rx="4.5"
+                                        :fill="n.cutSide === 'S' ? '#DCFCE7' : '#FCECEB'"
+                                        :stroke="n.cutSide === 'S' ? '#2E8B57' : '#D94A4A'"
+                                        stroke-width="1.1"
+                                    />
+                                    <text
+                                        text-anchor="middle"
+                                        dy="3"
+                                        class="font-mono text-[9px] font-bold"
+                                        :fill="n.cutSide === 'S' ? '#1E6B40' : '#B83232'"
+                                    >
+                                        {{ n.cutSide }}
+                                    </text>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- INLINE SKETCHED EDGE CAPACITY POPOVER (clamped inside canvas) -->
+                <div
+                    v-if="capEditor"
+                    ref="capPopoverRef"
+                    class="absolute z-40 paper-card rounded-xl px-2.5 py-2 flex items-center gap-1.5"
+                    :style="{ left: capEditor.x + 'px', top: capEditor.y + 'px', transform: 'translate(-50%, -115%)' }"
+                    @click.stop
+                    @wheel.prevent="nudgeCap($event.deltaY < 0 ? 1 : -1)"
+                >
+                    <span
+                        class="font-mono text-[11px] font-semibold text-[#6C737F] pr-0.5"
+                    >
+                        {{ capEditor.u }}→{{ capEditor.v }}
+                    </span>
+                    <button
+                        @click="nudgeCap(-1)"
+                        class="w-6 h-6 rounded-md border border-[#DCD6C8] bg-[#FAF9F5] hover:bg-[#EFECE3] font-mono text-sm font-bold flex items-center justify-center"
+                    >
+                        −
+                    </button>
+                    <input
+                        ref="capInputRef"
+                        type="number"
+                        min="1"
+                        max="99"
+                        :value="capEditor.cap"
+                        @input="setCap($event.target.value)"
+                        @keydown.enter="capEditor = null"
+                        @keydown.esc="capEditor = null"
+                        class="w-11 text-center font-mono text-xs font-bold py-1 rounded-md border border-[#D4CEC0] bg-white focus:outline-none focus:ring-2 focus:ring-[#2B7FFF]/40"
+                    />
+                    <button
+                        @click="nudgeCap(1)"
+                        class="w-6 h-6 rounded-md border border-[#DCD6C8] bg-[#FAF9F5] hover:bg-[#EFECE3] font-mono text-sm font-bold flex items-center justify-center"
+                    >
+                        +
+                    </button>
+                    <button
+                        @click="deleteEdge(capEditor.edgeId)"
+                        title="Delete Edge"
+                        class="ml-0.5 w-6 h-6 rounded-md text-[#D94A4A] hover:bg-[#FCECEB] flex items-center justify-center transition"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                        >
+                            <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- OPTIONAL FLOATING dist[] INSPECTOR POPOVER (Bottom-Right, zero layout shift) -->
+                <div
+                    v-if="showDistPopover"
+                    class="absolute right-3 bottom-3 z-30 paper-card rounded-xl p-2.5 w-52 max-h-[calc(100%-96px)] overflow-y-auto"
+                >
+                    <div class="flex items-center justify-between mb-1.5 px-1">
+                        <span
+                            class="font-mono text-[11px] font-bold text-[#1F2328]"
+                            >dist[]</span
+                        >
+                        <button
+                            @click="showDistPopover = false"
+                            class="text-[#6C737F] hover:text-[#1F2328] text-xs leading-none px-1"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <table class="w-full font-mono text-[11px] border-collapse">
+                        <thead>
+                            <tr
+                                class="text-[#6C737F] border-b border-[#E5E0D4]"
+                            >
+                                <th class="text-left font-medium py-1 px-1.5">
+                                    v
+                                </th>
+                                <th class="text-center font-medium py-1 px-1.5">
+                                    dist[v]
+                                </th>
+                                <th class="text-right font-medium py-1 px-1.5">
+                                    pred
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="n in nodes"
+                                :key="n.id"
+                                class="border-b border-[#F0ECE2] last:border-b-0 transition-colors"
+                                :class="currentStep.relaxedNodes.includes(n.id) ? 'bg-[#DCFCE7]/80 font-bold text-[#1E6B40]' : ''"
+                            >
+                                <td class="py-1 px-1.5 font-semibold">
+                                    {{ n.label }}
+                                </td>
+                                <td
+                                    class="py-1 px-1.5 text-center"
+                                    :class="currentStep.dist[n.id] === Infinity ? 'text-[#9BA1AA]' : ''"
+                                >
+                                    {{ currentStep.dist[n.id] === Infinity ? '∞'
+                                    : currentStep.dist[n.id] }}
+                                </td>
+                                <td class="py-1 px-1.5 text-right">
+                                    <template v-if="currentStep.pred[n.id]">
+                                        <span
+                                            :class="currentStep.pred[n.id].type === 'backward' ? 'text-[#D94A4A]' : 'text-[#555D68]'"
+                                        >
+                                            {{ currentStep.pred[n.id].type ===
+                                            'backward' ? '↺' : '←' }}{{
+                                            currentStep.pred[n.id].from }}
+                                        </span>
+                                    </template>
+                                    <span v-else class="text-[#B8BDC5]">—</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+
+            <!-- ===================================================================
+         3. SINGLE SLIM BOTTOM PLAYBACK BAR (52px)
+         =================================================================== -->
+            <footer
+                class="h-[52px] shrink-0 w-full border-t border-[#DFDACD] bg-[#FFFEFB]/95 px-3 sm:px-4 flex items-center justify-between gap-3 z-30"
+            >
+                <!-- Left: Playback Controls -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <button
+                        @click="jumpStep(0)"
+                        :disabled="stepIndex === 0"
+                        title="First Step"
+                        class="w-7 h-7 rounded-md hover:bg-[#EFECE3] disabled:opacity-30 flex items-center justify-center text-xs transition"
+                    >
+                        ⏮
+                    </button>
+                    <button
+                        @click="stepBack"
+                        :disabled="stepIndex === 0"
+                        title="Prev Step (←)"
+                        class="w-7 h-7 rounded-md hover:bg-[#EFECE3] disabled:opacity-30 flex items-center justify-center text-xs transition"
+                    >
+                        ◀
+                    </button>
+                    <button
+                        @click="togglePlay"
+                        title="Play / Pause (Space)"
+                        class="w-8 h-8 rounded-lg bg-[#1F2328] text-[#FAF9F5] hover:bg-[#343A43] flex items-center justify-center text-xs transition shadow-xs"
+                    >
+                        {{ isPlaying ? '⏸' : '▶' }}
+                    </button>
+                    <button
+                        @click="stepForward"
+                        :disabled="stepIndex >= steps.length - 1"
+                        title="Next Step (→)"
+                        class="w-7 h-7 rounded-md hover:bg-[#EFECE3] disabled:opacity-30 flex items-center justify-center text-xs transition"
+                    >
+                        ▶
+                    </button>
+                    <button
+                        @click="jumpStep(steps.length - 1)"
+                        :disabled="stepIndex >= steps.length - 1"
+                        title="Final Step"
+                        class="w-7 h-7 rounded-md hover:bg-[#EFECE3] disabled:opacity-30 flex items-center justify-center text-xs transition"
+                    >
+                        ⏭
+                    </button>
+                </div>
+
+                <!-- Center: Interactive Timeline + Step Markers + Mini Round +Δ Blocks + 1-line Badge -->
+                <div
+                    class="flex-1 min-w-0 flex flex-col justify-center gap-1 max-w-3xl"
+                >
+                    <!-- Top row: Step Badge + Mini Proportional Round-Delta Blocks -->
+                    <div
+                        class="flex items-center justify-between gap-2 min-w-0"
+                    >
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span
+                                class="font-mono text-[11px] font-semibold px-2 py-0.5 rounded-md border truncate"
+                                :class="stepBadgeClass"
+                            >
+                                {{ currentStep.badge }}
+                            </span>
+                            <span
+                                class="font-mono text-[10.5px] text-[#7D848F] shrink-0 tabular-nums"
+                            >
+                                {{ stepIndex + 1 }}/{{ steps.length }}
+                            </span>
+                        </div>
+
+                        <!-- Mini proportional +Δ round blocks -->
+                        <div
+                            v-if="roundDeltas.length"
+                            class="hidden md:flex items-center gap-1 shrink-0"
+                        >
+                            <button
+                                v-for="rd in roundDeltas"
+                                :key="rd.round"
+                                @click="jumpStep(rd.stepIdx)"
+                                :title="`Round ${rd.round}: +${rd.delta}${rd.reroute ? ' (reroute)' : ''}`"
+                                class="h-[18px] px-1.5 rounded font-mono text-[10px] font-bold border flex items-center justify-center transition-all"
+                                :style="{ minWidth: rd.widthPx + 'px' }"
+                                :class="stepIndex >= rd.stepIdx
+                ? (rd.reroute
+                    ? 'bg-[#FCECEB] border-[#D94A4A]/60 text-[#B83232]'
+                    : 'bg-[#DBEAFE] border-[#2B7FFF]/50 text-[#1D4ED8]')
+                : 'bg-[#FAF9F5] border-[#DFDACD] text-[#8A919C] hover:border-[#B5AFA2]'"
+                            >
+                                +{{ rd.delta }}<span
+                                    v-if="rd.reroute"
+                                    class="ml-0.5 text-[9px]"
+                                    >↺</span
+                                >
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom row: Interactive Clickable Step Marker Track -->
+                    <div
+                        ref="timelineRef"
+                        class="relative h-4 flex items-center cursor-pointer select-none"
+                        @pointerdown="onTimelinePointerDown"
+                    >
+                        <!-- Track base -->
+                        <div
+                            class="w-full h-1 rounded-full bg-[#E5E0D4] overflow-hidden"
+                        >
+                            <div
+                                class="h-full bg-[#1F2328] transition-all duration-150"
+                                :style="{ width: timelineProgressPct + '%' }"
+                            ></div>
+                        </div>
+
+                        <!-- Clickable Step Markers -->
+                        <button
+                            v-for="(s, idx) in steps"
+                            :key="idx"
+                            type="button"
+                            @click.stop="jumpStep(idx)"
+                            :title="s.badge"
+                            class="absolute -translate-x-1/2 rounded-full transition-all focus:outline-none"
+                            :style="{ left: (steps.length > 1 ? (idx / (steps.length - 1)) * 100 : 0) + '%' }"
+                            :class="idx === stepIndex
+              ? 'w-3 h-3 ring-2 ring-[#1F2328] ring-offset-1 ring-offset-[#FFFEFB] ' + markerColor(s.type)
+              : 'w-2 h-2 opacity-75 hover:opacity-100 hover:scale-125 ' + markerColor(s.type)"
+                        ></button>
+                    </div>
+                </div>
+
+                <!-- Right: Speed Cycle (1x / 2x) + dist[] Popover Toggle -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button
+                        @click="toggleSpeed"
+                        title="Playback Speed"
+                        class="h-8 px-2 rounded-lg border border-[#D9D3C5] bg-[#FAF9F5] hover:bg-[#EFECE3] font-mono text-[11px] font-bold text-[#1F2328] transition"
+                    >
+                        {{ playSpeed }}×
+                    </button>
+                    <button
+                        @click="showDistPopover = !showDistPopover"
+                        title="Toggle dist[] table"
+                        class="h-8 px-2.5 rounded-lg border font-mono text-[11px] font-semibold transition"
+                        :class="showDistPopover
+            ? 'bg-[#1F2328] text-[#FAF9F5] border-[#1F2328]'
+            : 'bg-[#FAF9F5] text-[#555D68] border-[#D9D3C5] hover:text-[#1F2328] hover:bg-[#EFECE3]'"
+                    >
+                        dist[]
+                    </button>
+                </div>
+            </footer>
+        </div>
+
+        <script>
+            const {
+                createApp,
+                ref,
+                computed,
+                onMounted,
+                onUnmounted,
+                nextTick,
+            } = Vue;
+
+            /* =========================================================================
+       1. CONSTANTS & EXACT SVG COORDINATE HELPER
+       ========================================================================= */
+            const VB_W = 600;
+            const VB_H = 420;
+            const NODE_R = 22;
+            const MARGIN = 34;
+
+            function clamp(val, min, max) {
+                return Math.max(min, Math.min(max, val));
+            }
+
+            /** Exact SVG coordinate conversion using getScreenCTM().inverse() */
+            function clientToSvg(svgEl, clientX, clientY) {
+                if (!svgEl || !svgEl.createSVGPoint)
+                    return { x: VB_W / 2, y: VB_H / 2 };
+                const ctm = svgEl.getScreenCTM();
+                if (!ctm) return { x: VB_W / 2, y: VB_H / 2 };
+                const pt = svgEl.createSVGPoint();
+                pt.x = clientX;
+                pt.y = clientY;
+                const svgPt = pt.matrixTransform(ctm.inverse());
+                return { x: svgPt.x, y: svgPt.y };
+            }
+
+            /* =========================================================================
+       2. DETERMINISTIC SEEDED SKETCH-SVG HELPERS (Zero Jitter)
+       ========================================================================= */
+            function hashSeed(str) {
+                let h = 2166136261 >>> 0;
+                for (let i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 16777619);
+                }
+                return h >>> 0;
+            }
+
+            function mulberry32(seed) {
+                let a = seed >>> 0;
+                return () => {
+                    a |= 0;
+                    a = (a + 0x6d2b79f5) | 0;
+                    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+                    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                };
+            }
+
+            /** Generates two subtly hand-drawn closed circle strokes for a node */
+            function sketchCirclePaths(r, id) {
+                const rand = mulberry32(hashSeed("node_" + id));
+                const buildLoop = (amp, phase) => {
+                    const count = 10;
+                    const pts = [];
+                    for (let i = 0; i < count; i++) {
+                        const ang = (i / count) * Math.PI * 2 + phase;
+                        const dr = (rand() - 0.5) * amp;
+                        pts.push({
+                            x: Math.cos(ang) * (r + dr),
+                            y: Math.sin(ang) * (r + dr),
+                        });
+                    }
+                    let d = "";
+                    for (let i = 0; i < count; i++) {
+                        const p0 = pts[i];
+                        const p1 = pts[(i + 1) % count];
+                        const mx = (p0.x + p1.x) / 2;
+                        const my = (p0.y + p1.y) / 2;
+                        if (i === 0) {
+                            const pPrev = pts[count - 1];
+                            d += `M ${((pPrev.x + p0.x) / 2).toFixed(1)} ${((pPrev.y + p0.y) / 2).toFixed(1)}`;
+                        }
+                        d += ` Q ${p0.x.toFixed(1)} ${p0.y.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`;
+                    }
+                    return d + " Z";
+                };
+                return [buildLoop(1.9, 0), buildLoop(2.6, 0.38)];
+            }
+
+            /** Computes exact quadratic Bezier edge geometry + double hand-sketched spine + arrowhead + cut slashes */
+            function computeSketchedEdge(n1, n2, curveOffset, nodeR, seedKey) {
+                const dx = n2.x - n1.x;
+                const dy = n2.y - n1.y;
+                const len = Math.hypot(dx, dy) || 1;
+                const nx = -dy / len;
+                const ny = dx / len;
+
+                const cx = (n1.x + n2.x) / 2 + nx * curveOffset;
+                const cy = (n1.y + n2.y) / 2 + ny * curveOffset;
+
+                // Trim start at source circle border
+                const sDx = cx - n1.x,
+                    sDy = cy - n1.y;
+                const sLen = Math.hypot(sDx, sDy) || 1;
+                const sx = n1.x + (sDx / sLen) * (nodeR + 2.5);
+                const sy = n1.y + (sDy / sLen) * (nodeR + 2.5);
+
+                // Trim end at target circle border
+                const eDx = n2.x - cx,
+                    eDy = n2.y - cy;
+                const eLen = Math.hypot(eDx, eDy) || 1;
+                const exU = eDx / eLen,
+                    eyU = eDy / eLen;
+                const tipX = n2.x - exU * (nodeR + 3.5);
+                const tipY = n2.y - eyU * (nodeR + 3.5);
+
+                const pathD = `M ${sx.toFixed(1)} ${sy.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`;
+
+                const rand = mulberry32(hashSeed(seedKey));
+                const sketch1 = `M ${(sx + (rand() - 0.5) * 0.9).toFixed(1)} ${(sy + (rand() - 0.5) * 0.9).toFixed(1)} Q ${(cx + (rand() - 0.5) * 2.6).toFixed(1)} ${(cy + (rand() - 0.5) * 2.6).toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`;
+                const sketch2 = `M ${(sx + (rand() - 0.5) * 1.4).toFixed(1)} ${(sy + (rand() - 0.5) * 1.4).toFixed(1)} Q ${(cx + (rand() - 0.5) * 3.8).toFixed(1)} ${(cy + (rand() - 0.5) * 3.8).toFixed(1)} ${(tipX + (rand() - 0.5) * 1.1).toFixed(1)} ${(tipY + (rand() - 0.5) * 1.1).toFixed(1)}`;
+
+                // Midpoint t = 0.5 on Bezier
+                const midX = 0.25 * sx + 0.5 * cx + 0.25 * tipX;
+                const midY = 0.25 * sy + 0.5 * cy + 0.25 * tipY;
+
+                // Sketched open-V arrowhead
+                const arrowLen = 9.5;
+                const spread = 0.44;
+                const ang = Math.atan2(eyU, exU);
+                const a1x =
+                    tipX -
+                    Math.cos(ang - spread) * (arrowLen + (rand() - 0.5) * 1.2);
+                const a1y =
+                    tipY -
+                    Math.sin(ang - spread) * (arrowLen + (rand() - 0.5) * 1.2);
+                const a2x =
+                    tipX -
+                    Math.cos(ang + spread) * (arrowLen + (rand() - 0.5) * 1.2);
+                const a2y =
+                    tipY -
+                    Math.sin(ang + spread) * (arrowLen + (rand() - 0.5) * 1.2);
+                const arrowD = `M ${a1x.toFixed(1)} ${a1y.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${a2x.toFixed(1)} ${a2y.toFixed(1)}`;
+
+                // Double cut-slash (//) positioned at t = 0.30 so it stays clear of the midpoint pill
+                const tCut = 0.28;
+                const omt = 1 - tCut;
+                const px =
+                    omt * omt * sx + 2 * omt * tCut * cx + tCut * tCut * tipX;
+                const py =
+                    omt * omt * sy + 2 * omt * tCut * cy + tCut * tCut * tipY;
+                const tx = 2 * omt * (cx - sx) + 2 * tCut * (tipX - cx);
+                const ty = 2 * omt * (cy - sy) + 2 * tCut * (tipY - cy);
+                const tLen = Math.hypot(tx, ty) || 1;
+                const ux = tx / tLen,
+                    uy = ty / tLen;
+                const pnx = -uy,
+                    pny = ux;
+                const half = 8.5;
+                const gap = 3.2;
+                const s1x1 = px - ux * gap - pnx * half,
+                    s1y1 = py - uy * gap - pny * half;
+                const s1x2 = px - ux * (gap - 2.2) + pnx * half,
+                    s1y2 = py - uy * (gap - 2.2) + pny * half;
+                const s2x1 = px + ux * (gap - 2.2) - pnx * half,
+                    s2y1 = py + uy * (gap - 2.2) - pny * half;
+                const s2x2 = px + ux * gap + pnx * half,
+                    s2y2 = py + uy * gap + pny * half;
+                const cutSlashD = `M ${s1x1.toFixed(1)} ${s1y1.toFixed(1)} L ${s1x2.toFixed(1)} ${s1y2.toFixed(1)} M ${s2x1.toFixed(1)} ${s2y1.toFixed(1)} L ${s2x2.toFixed(1)} ${s2y2.toFixed(1)}`;
+
+                return {
+                    pathD,
+                    sketch1,
+                    sketch2,
+                    arrowD,
+                    midX,
+                    midY,
+                    cutSlashD,
+                };
+            }
+
+            /** Computes a smooth hand-drawn dashed divider contour separating S and T */
+            function buildCutDivider(setS, setT, nodes, edges) {
+                const nodeMap = Object.fromEntries(nodes.map((n) => [n.id, n]));
+                const sNodes = nodes.filter((n) => setS.has(n.id));
+                const tNodes = nodes.filter((n) => setT.has(n.id));
+                if (!sNodes.length || !tNodes.length) return null;
+
+                const cs = {
+                    x: sNodes.reduce((a, n) => a + n.x, 0) / sNodes.length,
+                    y: sNodes.reduce((a, n) => a + n.y, 0) / sNodes.length,
+                };
+                const ct = {
+                    x: tNodes.reduce((a, n) => a + n.x, 0) / tNodes.length,
+                    y: tNodes.reduce((a, n) => a + n.y, 0) / tNodes.length,
+                };
+
+                const vx = ct.x - cs.x;
+                const vy = ct.y - cs.y;
+                const vLen = Math.hypot(vx, vy) || 1;
+                const ax = -vy / vLen;
+                const ay = vx / vLen;
+
+                const pts = [];
+                for (const e of edges) {
+                    if (
+                        (setS.has(e.u) && setT.has(e.v)) ||
+                        (setT.has(e.u) && setS.has(e.v))
+                    ) {
+                        const n1 = nodeMap[e.u];
+                        const n2 = nodeMap[e.v];
+                        if (!n1 || !n2) continue;
+                        pts.push({
+                            x: (n1.x + n2.x) / 2,
+                            y: (n1.y + n2.y) / 2,
+                        });
+                    }
+                }
+
+                // Fallback perpendicular bisector if disconnected (e.g., Blank Canvas)
+                if (!pts.length) {
+                    const mx = (cs.x + ct.x) / 2;
+                    const my = (cs.y + ct.y) / 2;
+                    const p1x = clamp(mx - ax * 130, 24, VB_W - 24);
+                    const p1y = clamp(my - ay * 130, 24, VB_H - 24);
+                    const p2x = clamp(mx + ax * 130, 24, VB_W - 24);
+                    const p2y = clamp(my + ay * 130, 24, VB_H - 24);
+                    return {
+                        dividerD: `M ${p1x.toFixed(1)} ${p1y.toFixed(1)} L ${p2x.toFixed(1)} ${p2y.toFixed(1)}`,
+                    };
+                }
+
+                pts.sort((a, b) => a.x * ax + a.y * ay - (b.x * ax + b.y * ay));
+
+                const dedup = [];
+                for (const p of pts) {
+                    if (
+                        !dedup.length ||
+                        Math.hypot(
+                            p.x - dedup[dedup.length - 1].x,
+                            p.y - dedup[dedup.length - 1].y,
+                        ) > 14
+                    ) {
+                        dedup.push(p);
+                    }
+                }
+
+                const ext = 48;
+                const first = dedup[0];
+                const last = dedup[dedup.length - 1];
+                const all = [
+                    {
+                        x: clamp(first.x - ax * ext, 20, VB_W - 20),
+                        y: clamp(first.y - ay * ext, 22, VB_H - 22),
+                    },
+                    ...dedup,
+                    {
+                        x: clamp(last.x + ax * ext, 20, VB_W - 20),
+                        y: clamp(last.y + ay * ext, 22, VB_H - 22),
+                    },
+                ];
+
+                const rand = mulberry32(
+                    hashSeed("div_" + Array.from(setS).sort().join(",")),
+                );
+                let d = `M ${all[0].x.toFixed(1)} ${all[0].y.toFixed(1)}`;
+                for (let i = 1; i < all.length - 1; i++) {
+                    const xc = (all[i].x + all[i + 1].x) / 2;
+                    const yc = (all[i].y + all[i + 1].y) / 2;
+                    d += ` Q ${(all[i].x + (rand() - 0.5) * 6).toFixed(1)} ${(all[i].y + (rand() - 0.5) * 6).toFixed(1)} ${xc.toFixed(1)} ${yc.toFixed(1)}`;
+                }
+                const end = all[all.length - 1];
+                d += ` L ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
+                return { dividerD: d };
+            }
+
+            /* =========================================================================
+       3. SIX GRAPH PRESETS (Exact 600x420 ViewBox Geometry)
+       ========================================================================= */
+            const PRESETS = {
+                reroute: {
+                    label: "Reroute Trap",
+                    nodes: [
+                        { id: "s", label: "s", x: 74, y: 210, role: "source" },
+                        { id: "a", label: "a", x: 228, y: 104, role: "normal" },
+                        { id: "c", label: "c", x: 228, y: 316, role: "normal" },
+                        { id: "d", label: "d", x: 392, y: 104, role: "normal" },
+                        { id: "b", label: "b", x: 392, y: 316, role: "normal" },
+                        { id: "t", label: "t", x: 526, y: 210, role: "sink" },
+                    ],
+                    edges: [
+                        { id: "r1", u: "s", v: "a", cap: 8 },
+                        { id: "r2", u: "a", v: "b", cap: 8 },
+                        { id: "r3", u: "b", v: "t", cap: 8 },
+                        { id: "r4", u: "s", v: "c", cap: 10 },
+                        { id: "r5", u: "c", v: "b", cap: 8 },
+                        { id: "r6", u: "a", v: "d", cap: 8 },
+                        { id: "r7", u: "d", v: "t", cap: 10 },
+                    ],
+                },
+                clrs: {
+                    label: "CLRS Classic",
+                    nodes: [
+                        { id: "s", label: "s", x: 70, y: 210, role: "source" },
+                        {
+                            id: "v1",
+                            label: "v1",
+                            x: 218,
+                            y: 100,
+                            role: "normal",
+                        },
+                        {
+                            id: "v2",
+                            label: "v2",
+                            x: 218,
+                            y: 320,
+                            role: "normal",
+                        },
+                        {
+                            id: "v3",
+                            label: "v3",
+                            x: 392,
+                            y: 100,
+                            role: "normal",
+                        },
+                        {
+                            id: "v4",
+                            label: "v4",
+                            x: 392,
+                            y: 320,
+                            role: "normal",
+                        },
+                        { id: "t", label: "t", x: 530, y: 210, role: "sink" },
+                    ],
+                    edges: [
+                        { id: "c1", u: "s", v: "v1", cap: 16 },
+                        { id: "c2", u: "s", v: "v2", cap: 13 },
+                        { id: "c3", u: "v1", v: "v2", cap: 10 },
+                        { id: "c4", u: "v2", v: "v1", cap: 4 },
+                        { id: "c5", u: "v1", v: "v3", cap: 12 },
+                        { id: "c6", u: "v2", v: "v4", cap: 14 },
+                        { id: "c7", u: "v3", v: "v2", cap: 9 },
+                        { id: "c8", u: "v4", v: "v3", cap: 7 },
+                        { id: "c9", u: "v3", v: "t", cap: 20 },
+                        { id: "c10", u: "v4", v: "t", cap: 4 },
+                    ],
+                },
+                bottleneck: {
+                    label: "Diamond Bottleneck",
+                    nodes: [
+                        { id: "s", label: "s", x: 64, y: 210, role: "source" },
+                        { id: "a", label: "a", x: 180, y: 102, role: "normal" },
+                        { id: "b", label: "b", x: 180, y: 318, role: "normal" },
+                        { id: "m", label: "m", x: 300, y: 210, role: "normal" },
+                        { id: "c", label: "c", x: 420, y: 102, role: "normal" },
+                        { id: "d", label: "d", x: 420, y: 318, role: "normal" },
+                        { id: "t", label: "t", x: 536, y: 210, role: "sink" },
+                    ],
+                    edges: [
+                        { id: "b1", u: "s", v: "a", cap: 18 },
+                        { id: "b2", u: "s", v: "b", cap: 18 },
+                        { id: "b3", u: "a", v: "m", cap: 4 },
+                        { id: "b4", u: "b", v: "m", cap: 5 },
+                        { id: "b5", u: "a", v: "c", cap: 3 },
+                        { id: "b6", u: "b", v: "d", cap: 2 },
+                        { id: "b7", u: "m", v: "c", cap: 4 },
+                        { id: "b8", u: "m", v: "d", cap: 3 },
+                        { id: "b9", u: "c", v: "t", cap: 18 },
+                        { id: "b10", u: "d", v: "t", cap: 18 },
+                    ],
+                },
+                bipartite: {
+                    label: "Bipartite Matching",
+                    nodes: [
+                        { id: "s", label: "s", x: 68, y: 210, role: "source" },
+                        {
+                            id: "w1",
+                            label: "w1",
+                            x: 212,
+                            y: 92,
+                            role: "normal",
+                        },
+                        {
+                            id: "w2",
+                            label: "w2",
+                            x: 212,
+                            y: 210,
+                            role: "normal",
+                        },
+                        {
+                            id: "w3",
+                            label: "w3",
+                            x: 212,
+                            y: 328,
+                            role: "normal",
+                        },
+                        {
+                            id: "j1",
+                            label: "j1",
+                            x: 388,
+                            y: 92,
+                            role: "normal",
+                        },
+                        {
+                            id: "j2",
+                            label: "j2",
+                            x: 388,
+                            y: 210,
+                            role: "normal",
+                        },
+                        {
+                            id: "j3",
+                            label: "j3",
+                            x: 388,
+                            y: 328,
+                            role: "normal",
+                        },
+                        { id: "t", label: "t", x: 532, y: 210, role: "sink" },
+                    ],
+                    edges: [
+                        { id: "m1", u: "s", v: "w1", cap: 1 },
+                        { id: "m2", u: "s", v: "w2", cap: 1 },
+                        { id: "m3", u: "s", v: "w3", cap: 1 },
+                        { id: "m4", u: "w1", v: "j1", cap: 1 },
+                        { id: "m5", u: "w1", v: "j2", cap: 1 },
+                        { id: "m6", u: "w2", v: "j1", cap: 1 },
+                        { id: "m7", u: "w3", v: "j2", cap: 1 },
+                        { id: "m8", u: "w3", v: "j3", cap: 1 },
+                        { id: "m9", u: "j1", v: "t", cap: 1 },
+                        { id: "m10", u: "j2", v: "t", cap: 1 },
+                        { id: "m11", u: "j3", v: "t", cap: 1 },
+                    ],
+                },
+                mesh: {
+                    label: "Braided Mesh",
+                    nodes: [
+                        { id: "s", label: "s", x: 62, y: 210, role: "source" },
+                        {
+                            id: "n1",
+                            label: "n1",
+                            x: 174,
+                            y: 94,
+                            role: "normal",
+                        },
+                        {
+                            id: "n2",
+                            label: "n2",
+                            x: 174,
+                            y: 326,
+                            role: "normal",
+                        },
+                        {
+                            id: "n3",
+                            label: "n3",
+                            x: 300,
+                            y: 150,
+                            role: "normal",
+                        },
+                        {
+                            id: "n4",
+                            label: "n4",
+                            x: 300,
+                            y: 270,
+                            role: "normal",
+                        },
+                        {
+                            id: "n5",
+                            label: "n5",
+                            x: 426,
+                            y: 94,
+                            role: "normal",
+                        },
+                        {
+                            id: "n6",
+                            label: "n6",
+                            x: 426,
+                            y: 326,
+                            role: "normal",
+                        },
+                        { id: "t", label: "t", x: 538, y: 210, role: "sink" },
+                    ],
+                    edges: [
+                        { id: "g1", u: "s", v: "n1", cap: 14 },
+                        { id: "g2", u: "s", v: "n2", cap: 12 },
+                        { id: "g3", u: "n1", v: "n3", cap: 8 },
+                        { id: "g4", u: "n1", v: "n5", cap: 6 },
+                        { id: "g5", u: "n2", v: "n4", cap: 10 },
+                        { id: "g6", u: "n2", v: "n6", cap: 5 },
+                        { id: "g7", u: "n3", v: "n4", cap: 4 },
+                        { id: "g8", u: "n4", v: "n3", cap: 4 },
+                        { id: "g9", u: "n3", v: "n5", cap: 7 },
+                        { id: "g10", u: "n3", v: "n6", cap: 3 },
+                        { id: "g11", u: "n4", v: "n5", cap: 4 },
+                        { id: "g12", u: "n4", v: "n6", cap: 8 },
+                        { id: "g13", u: "n5", v: "t", cap: 13 },
+                        { id: "g14", u: "n6", v: "t", cap: 14 },
+                    ],
+                },
+                blank: {
+                    label: "Blank Canvas",
+                    nodes: [
+                        { id: "s", label: "s", x: 96, y: 210, role: "source" },
+                        { id: "t", label: "t", x: 504, y: 210, role: "sink" },
+                    ],
+                    edges: [],
+                },
+            };
+
+            /* =========================================================================
+       4. FORD-FULKERSON MAX-FLOW TRACE ENGINE
+       ========================================================================= */
+            function buildResidual(edges, flows) {
+                const list = [];
+                for (const e of edges) {
+                    const f = flows[e.id] || 0;
+                    const rem = e.cap - f;
+                    if (rem > 0) {
+                        list.push({
+                            resId: `${e.id}_f`,
+                            edgeId: e.id,
+                            from: e.u,
+                            to: e.v,
+                            resCap: rem,
+                            type: "forward",
+                        });
+                    }
+                    if (f > 0) {
+                        list.push({
+                            resId: `${e.id}_b`,
+                            edgeId: e.id,
+                            from: e.v,
+                            to: e.u,
+                            resCap: f,
+                            type: "backward",
+                        });
+                    }
+                }
+                return list;
+            }
+
+            function computeTrace(nodes, edges) {
+                if (!nodes.length) return [];
+                const sNode =
+                    nodes.find((n) => n.role === "source") || nodes[0];
+                const tNode =
+                    nodes.find((n) => n.role === "sink") ||
+                    nodes[nodes.length - 1];
+                const sId = sNode.id;
+                const tId = tNode.id;
+                const V = nodes.length;
+
+                const flows = {};
+                for (const e of edges) flows[e.id] = 0;
+
+                const freshDist = () =>
+                    Object.fromEntries(
+                        nodes.map((n) => [n.id, n.id === sId ? 0 : Infinity]),
+                    );
+                const freshPred = () =>
+                    Object.fromEntries(nodes.map((n) => [n.id, null]));
+                const calcFlow = () =>
+                    edges.reduce(
+                        (sum, e) =>
+                            sum +
+                            (e.u === sId ? flows[e.id] : 0) -
+                            (e.v === sId ? flows[e.id] : 0),
+                        0,
+                    );
+
+                const steps = [];
+                steps.push({
+                    type: "INIT",
+                    badge: "Init · Flow = 0",
+                    round: 0,
+                    pass: 0,
+                    flows: { ...flows },
+                    resEdges: buildResidual(edges, flows),
+                    dist: freshDist(),
+                    pred: freshPred(),
+                    relaxedEdgeIds: [],
+                    relaxedNodes: [],
+                    path: [],
+                    bottleneck: null,
+                    bottleneckResIds: [],
+                    reroute: false,
+                    totalFlow: 0,
+                    minCut: null,
+                });
+
+                let round = 0;
+                const MAX_ROUNDS = 45;
+
+                while (round < MAX_ROUNDS) {
+                    round++;
+                    const resEdges = buildResidual(edges, flows);
+                    let dist = freshDist();
+                    let pred = freshPred();
+                    const curFlow = calcFlow();
+
+                    // Shortest augmenting path: up to |V| - 1 relaxation passes with unit hop weight 1
+                    for (let k = 1; k <= Math.max(1, V - 1); k++) {
+                        const prevDist = { ...dist };
+                        const nextDist = { ...dist };
+                        const nextPred = { ...pred };
+                        const relaxedEdgeIds = [];
+                        const relaxedNodeSet = new Set();
+
+                        for (const re of resEdges) {
+                            if (
+                                prevDist[re.from] !== Infinity &&
+                                prevDist[re.from] + 1 < nextDist[re.to]
+                            ) {
+                                nextDist[re.to] = prevDist[re.from] + 1;
+                                nextPred[re.to] = re;
+                                relaxedEdgeIds.push(re.resId);
+                                relaxedNodeSet.add(re.to);
+                            }
+                        }
+
+                        if (relaxedEdgeIds.length === 0) break;
+
+                        dist = nextDist;
+                        pred = nextPred;
+
+                        steps.push({
+                            type: "BF_PASS",
+                            badge: `Round ${round} · BF Pass ${k} · ${relaxedEdgeIds.length} relaxed`,
+                            round,
+                            pass: k,
+                            flows: { ...flows },
+                            resEdges,
+                            dist: { ...dist },
+                            pred: { ...pred },
+                            relaxedEdgeIds,
+                            relaxedNodes: Array.from(relaxedNodeSet),
+                            path: [],
+                            bottleneck: null,
+                            bottleneckResIds: [],
+                            reroute: false,
+                            totalFlow: curFlow,
+                            minCut: null,
+                        });
+                    }
+
+                    // Termination: sink t unreachable in G_f => exact Min-Cut (S, T)
+                    if (dist[tId] === Infinity) {
+                        const S = nodes
+                            .filter((n) => dist[n.id] < Infinity)
+                            .map((n) => n.id);
+                        const setS = new Set(S);
+                        const T = nodes
+                            .filter((n) => !setS.has(n.id))
+                            .map((n) => n.id);
+                        const cutEdges = edges.filter(
+                            (e) => setS.has(e.u) && !setS.has(e.v),
+                        );
+                        const cutCap = cutEdges.reduce(
+                            (sum, e) => sum + e.cap,
+                            0,
+                        );
+
+                        steps.push({
+                            type: "DONE",
+                            badge: `Max Flow = ${curFlow} · Min-Cut = ${cutCap}`,
+                            round,
+                            pass: 0,
+                            flows: { ...flows },
+                            resEdges,
+                            dist: { ...dist },
+                            pred: { ...pred },
+                            relaxedEdgeIds: [],
+                            relaxedNodes: [],
+                            path: [],
+                            bottleneck: null,
+                            bottleneckResIds: [],
+                            reroute: false,
+                            totalFlow: curFlow,
+                            minCut: { S, T, cutEdges, cap: cutCap },
+                        });
+                        break;
+                    }
+
+                    // Reconstruct shortest augmenting path P from s to t
+                    const path = [];
+                    let cur = tId;
+                    const guard = new Set();
+                    while (cur !== sId && pred[cur] && !guard.has(cur)) {
+                        guard.add(cur);
+                        path.unshift(pred[cur]);
+                        cur = pred[cur].from;
+                    }
+
+                    const delta = Math.min(...path.map((pe) => pe.resCap));
+                    const bottleneckResIds = path
+                        .filter((pe) => pe.resCap === delta)
+                        .map((pe) => pe.resId);
+                    const reroute = path.some((pe) => pe.type === "backward");
+
+                    steps.push({
+                        type: "PATH",
+                        badge: `Round ${round} · Path Δ=${delta}${reroute ? " (reroute)" : ""}`,
+                        round,
+                        pass: 0,
+                        flows: { ...flows },
+                        resEdges,
+                        dist: { ...dist },
+                        pred: { ...pred },
+                        relaxedEdgeIds: [],
+                        relaxedNodes: [],
+                        path,
+                        bottleneck: delta,
+                        bottleneckResIds,
+                        reroute,
+                        totalFlow: curFlow,
+                        minCut: null,
+                    });
+
+                    // Augment flow along P
+                    for (const pe of path) {
+                        flows[pe.edgeId] =
+                            (flows[pe.edgeId] || 0) +
+                            (pe.type === "forward" ? delta : -delta);
+                    }
+                    const nextTotal = calcFlow();
+                    const nextRes = buildResidual(edges, flows);
+
+                    steps.push({
+                        type: "AUGMENT",
+                        badge: `Round ${round} · Augment +${delta}${reroute ? " (reroute)" : ""} → Flow ${nextTotal}`,
+                        round,
+                        pass: 0,
+                        flows: { ...flows },
+                        resEdges: nextRes,
+                        dist: { ...dist },
+                        pred: { ...pred },
+                        relaxedEdgeIds: [],
+                        relaxedNodes: [],
+                        path,
+                        bottleneck: delta,
+                        bottleneckResIds,
+                        reroute,
+                        totalFlow: nextTotal,
+                        minCut: null,
+                    });
+                }
+
+                return steps;
+            }
+
+            /* =========================================================================
+       5. VUE 3 APPLICATION
+       ========================================================================= */
+            createApp({
+                setup() {
+                    const presetList = Object.entries(PRESETS).map(
+                        ([key, p]) => ({ key, label: p.label }),
+                    );
+                    const tools = [
+                        {
+                            id: "move",
+                            label: "Move",
+                            icon: "✥",
+                            title: "Move nodes · Dbl-click canvas: +Node · Shift+drag: Edge (1)",
+                        },
+                        {
+                            id: "edge",
+                            label: "Edge",
+                            icon: "↗",
+                            title: "Drag or click source → target to add edge (2)",
+                        },
+                        {
+                            id: "erase",
+                            label: "Erase",
+                            icon: "✕",
+                            title: "Click node or edge to remove (3)",
+                        },
+                    ];
+
+                    const presetKey = ref("reroute");
+                    const nodes = ref([]);
+                    const edges = ref([]);
+                    const viewMode = ref("split"); // 'split' | 'unified'
+                    const activeTool = ref("move"); // 'move' | 'edge' | 'erase'
+                    const showCut = ref(false);
+                    const showDistPopover = ref(false);
+                    const stepIndex = ref(0);
+                    const isPlaying = ref(false);
+                    const playSpeed = ref(1); // 1 | 2
+
+                    const undoStack = ref([]);
+                    const hoveredEdgeId = ref(null);
+                    const pendingEdgeOriginId = ref(null);
+
+                    // Active pointer interaction states (reactive where needed for preview/rings)
+                    const dragState = ref(null); // { nodeId, svgEl, offsetX, offsetY, startClientX, startClientY, moved, preSnapshot }
+                    const connectState = ref(null); // { originId, svgEl, cursorX, cursorY, snapNodeId, startClientX, startClientY, dragged }
+                    const scrubbingTimeline = ref(false);
+
+                    // Inline edge capacity popover
+                    const capEditor = ref(null); // { edgeId, u, v, cap, x, y }
+                    const canvasWrapRef = ref(null);
+                    const capPopoverRef = ref(null);
+                    const capInputRef = ref(null);
+                    const timelineRef = ref(null);
+
+                    let playTimer = null;
+                    let edgeSeq = 1;
+
+                    /* --- Reactive Algorithm Trace --- */
+                    const steps = computed(() =>
+                        computeTrace(nodes.value, edges.value),
+                    );
+
+                    const currentStep = computed(() => {
+                        const list = steps.value;
+                        if (!list.length) {
+                            return {
+                                type: "INIT",
+                                badge: "Init",
+                                round: 0,
+                                pass: 0,
+                                flows: {},
+                                resEdges: [],
+                                dist: {},
+                                pred: {},
+                                relaxedEdgeIds: [],
+                                relaxedNodes: [],
+                                path: [],
+                                bottleneck: null,
+                                bottleneckResIds: [],
+                                reroute: false,
+                                totalFlow: 0,
+                                minCut: null,
+                            };
+                        }
+                        return list[Math.min(stepIndex.value, list.length - 1)];
+                    });
+
+                    const finalStep = computed(() =>
+                        steps.value.length
+                            ? steps.value[steps.value.length - 1]
+                            : null,
+                    );
+                    const finalMaxFlow = computed(() =>
+                        finalStep.value ? finalStep.value.totalFlow : 0,
+                    );
+                    const finalMinCut = computed(() =>
+                        finalStep.value ? finalStep.value.minCut : null,
+                    );
+
+                    const minCutEquationTerms = computed(() => {
+                        if (
+                            !finalMinCut.value ||
+                            !finalMinCut.value.cutEdges.length
+                        )
+                            return "0";
+                        return finalMinCut.value.cutEdges
+                            .map((e) => e.cap)
+                            .join(" + ");
+                    });
+
+                    const roundDeltas = computed(() => {
+                        const items = [];
+                        steps.value.forEach((s, idx) => {
+                            if (s.type === "AUGMENT" && s.bottleneck > 0) {
+                                items.push({
+                                    round: s.round,
+                                    delta: s.bottleneck,
+                                    reroute: s.reroute,
+                                    stepIdx: idx,
+                                });
+                            }
+                        });
+                        const maxD = Math.max(1, ...items.map((i) => i.delta));
+                        return items.map((i) => ({
+                            ...i,
+                            widthPx: Math.round(28 + (i.delta / maxD) * 28),
+                        }));
+                    });
+
+                    const timelineProgressPct = computed(() => {
+                        if (steps.value.length <= 1) return 100;
+                        return (
+                            (stepIndex.value / (steps.value.length - 1)) * 100
+                        );
+                    });
+
+                    /* --- Cut Visuals (derived reactively from node.x, node.y) --- */
+                    const cutSets = computed(() => {
+                        if (!finalMinCut.value)
+                            return {
+                                S: new Set(),
+                                T: new Set(),
+                                crossingIds: new Set(),
+                            };
+                        return {
+                            S: new Set(finalMinCut.value.S),
+                            T: new Set(finalMinCut.value.T),
+                            crossingIds: new Set(
+                                finalMinCut.value.cutEdges.map((e) => e.id),
+                            ),
+                        };
+                    });
+
+                    const cutVisual = computed(() => {
+                        if (!showCut.value || !finalMinCut.value) return null;
+                        return buildCutDivider(
+                            cutSets.value.S,
+                            cutSets.value.T,
+                            nodes.value,
+                            edges.value,
+                        );
+                    });
+
+                    /* --- Render Geometry (100% reactive from node.x, node.y in 600x420 viewBox) --- */
+                    const flowRenderEdges = computed(() => {
+                        const step = currentStep.value;
+                        const nodeMap = Object.fromEntries(
+                            nodes.value.map((n) => [n.id, n]),
+                        );
+                        const maxCap = Math.max(
+                            1,
+                            ...edges.value.map((e) => e.cap),
+                        );
+                        const pathMap = new Map(
+                            (step.path || []).map((pe) => [pe.edgeId, pe]),
+                        );
+                        const bnSet = new Set(step.bottleneckResIds || []);
+                        const cutIds = cutSets.value.crossingIds;
+
+                        return edges.value
+                            .map((e) => {
+                                const n1 = nodeMap[e.u];
+                                const n2 = nodeMap[e.v];
+                                if (!n1 || !n2) return null;
+
+                                const hasAnti = edges.value.some(
+                                    (o) => o.u === e.v && o.v === e.u,
+                                );
+                                const g = computeSketchedEdge(
+                                    n1,
+                                    n2,
+                                    hasAnti ? 24 : 0,
+                                    NODE_R,
+                                    "flow_" + e.id,
+                                );
+                                const f = step.flows[e.id] || 0;
+                                const ratio = e.cap > 0 ? f / e.cap : 0;
+                                const pipeW = 7.5 + (e.cap / maxCap) * 9.5;
+                                const fillW =
+                                    ratio > 0
+                                        ? Math.max(4, (pipeW - 2) * ratio)
+                                        : 0;
+                                const pe = pathMap.get(e.id);
+                                const isCutCrossing =
+                                    showCut.value && cutIds.has(e.id);
+                                const isBottleneck = Boolean(
+                                    pe && bnSet.has(pe.resId),
+                                );
+                                const labelText = `${f}/${e.cap}`;
+
+                                // Droplet density scales smoothly with flow ratio
+                                const gap = Math.max(
+                                    5,
+                                    Math.round(13 - ratio * 6),
+                                );
+                                const dropletDash = `3 ${gap}`;
+
+                                return {
+                                    ...e,
+                                    ...g,
+                                    flow: f,
+                                    saturated: e.cap > 0 && f >= e.cap,
+                                    pipeW,
+                                    fillW,
+                                    dropletDash,
+                                    onPath: Boolean(pe),
+                                    pathType: pe ? pe.type : null,
+                                    isBottleneck,
+                                    isCutCrossing,
+                                    inkColor: isCutCrossing
+                                        ? "#D94A4A"
+                                        : pe
+                                          ? "#B45309"
+                                          : "#1F2328",
+                                    pillW: Math.max(
+                                        36,
+                                        labelText.length * 7.1 + 13,
+                                    ),
+                                };
+                            })
+                            .filter(Boolean);
+                    });
+
+                    const residualRenderEdges = computed(() => {
+                        const step = currentStep.value;
+                        const nodeMap = Object.fromEntries(
+                            nodes.value.map((n) => [n.id, n]),
+                        );
+                        const pathSet = new Set(
+                            (step.path || []).map((p) => p.resId),
+                        );
+                        const relaxedSet = new Set(step.relaxedEdgeIds || []);
+
+                        return (step.resEdges || [])
+                            .map((re) => {
+                                const n1 = nodeMap[re.from];
+                                const n2 = nodeMap[re.to];
+                                if (!n1 || !n2) return null;
+
+                                const orig = edges.value.find(
+                                    (e) => e.id === re.edgeId,
+                                );
+                                const origAnti = orig
+                                    ? edges.value.some(
+                                          (o) =>
+                                              o.u === orig.v && o.v === orig.u,
+                                      )
+                                    : false;
+                                const offset =
+                                    re.type === "backward"
+                                        ? origAnti
+                                            ? 46
+                                            : 34
+                                        : origAnti
+                                          ? 22
+                                          : 0;
+                                const g = computeSketchedEdge(
+                                    n1,
+                                    n2,
+                                    offset,
+                                    NODE_R,
+                                    "res_" + re.resId,
+                                );
+                                const onPath = pathSet.has(re.resId);
+                                const relaxed = relaxedSet.has(re.resId);
+                                const label =
+                                    re.type === "backward"
+                                        ? `↺${re.resCap}`
+                                        : `${re.resCap}`;
+                                const strokeColor = onPath
+                                    ? re.type === "backward"
+                                        ? "#D94A4A"
+                                        : "#B45309"
+                                    : relaxed
+                                      ? "#2E8B57"
+                                      : re.type === "backward"
+                                        ? "#D94A4A"
+                                        : "#1F2328";
+
+                                return {
+                                    ...re,
+                                    ...g,
+                                    onPath,
+                                    relaxed,
+                                    label,
+                                    strokeColor,
+                                    pillW: Math.max(
+                                        24,
+                                        label.length * 6.9 + 11,
+                                    ),
+                                };
+                            })
+                            .filter(Boolean);
+                    });
+
+                    const renderNodes = computed(() => {
+                        const step = currentStep.value;
+                        const relaxedSet = new Set(step.relaxedNodes || []);
+                        const sSet = cutSets.value.S;
+
+                        return nodes.value.map((n) => {
+                            const [circle1, circle2] = sketchCirclePaths(
+                                NODE_R,
+                                n.id,
+                            );
+                            const isEndpoint =
+                                n.role === "source" || n.role === "sink";
+                            const justRelaxed = relaxedSet.has(n.id);
+                            const cutSide = finalMinCut.value
+                                ? sSet.has(n.id)
+                                    ? "S"
+                                    : "T"
+                                : null;
+
+                            let flowFill = "#FFFEFB";
+                            let flowStroke = "#1F2328";
+                            if (showCut.value && cutSide === "S") {
+                                flowFill = "#DCFCE7";
+                                flowStroke = "#2E8B57";
+                            } else if (showCut.value && cutSide === "T") {
+                                flowFill = "#FCECEB";
+                                flowStroke = "#D94A4A";
+                            } else if (n.role === "source") {
+                                flowFill = "#DBEAFE";
+                                flowStroke = "#1D4ED8";
+                            } else if (n.role === "sink") {
+                                flowFill = "#FCECEB";
+                                flowStroke = "#B83232";
+                            }
+
+                            const resFill = justRelaxed ? "#DCFCE7" : flowFill;
+                            const resStroke = justRelaxed
+                                ? "#2E8B57"
+                                : flowStroke;
+
+                            const dVal = step.dist
+                                ? step.dist[n.id]
+                                : undefined;
+                            const distInf =
+                                dVal === Infinity || dVal === undefined;
+                            const distLabel =
+                                dVal !== undefined
+                                    ? `d=${distInf ? "∞" : dVal}`
+                                    : "";
+                            const distW = Math.max(
+                                28,
+                                distLabel.length * 6.2 + 9,
+                            );
+
+                            return {
+                                ...n,
+                                circle1,
+                                circle2,
+                                isEndpoint,
+                                justRelaxed,
+                                cutSide,
+                                flowFill,
+                                flowStroke,
+                                resFill,
+                                resStroke,
+                                distLabel,
+                                distInf,
+                                distW,
+                            };
+                        });
+                    });
+
+                    const connectPreview = computed(() => {
+                        if (!connectState.value) return null;
+                        const origin = nodes.value.find(
+                            (n) => n.id === connectState.value.originId,
+                        );
+                        if (!origin) return null;
+
+                        let tx = connectState.value.cursorX;
+                        let ty = connectState.value.cursorY;
+                        if (connectState.value.snapNodeId) {
+                            const snap = nodes.value.find(
+                                (n) => n.id === connectState.value.snapNodeId,
+                            );
+                            if (snap) {
+                                const dx = snap.x - origin.x;
+                                const dy = snap.y - origin.y;
+                                const dist = Math.hypot(dx, dy) || 1;
+                                tx = snap.x - (dx / dist) * (NODE_R + 4);
+                                ty = snap.y - (dy / dist) * (NODE_R + 4);
+                            }
+                        }
+
+                        const dx = tx - origin.x;
+                        const dy = ty - origin.y;
+                        const len = Math.hypot(dx, dy);
+                        if (len < 6) return null;
+
+                        const sx = origin.x + (dx / len) * (NODE_R + 2);
+                        const sy = origin.y + (dy / len) * (NODE_R + 2);
+                        const ang = Math.atan2(dy, dx);
+                        const aLen = 9;
+                        const spread = 0.45;
+                        const a1x = tx - Math.cos(ang - spread) * aLen;
+                        const a1y = ty - Math.sin(ang - spread) * aLen;
+                        const a2x = tx - Math.cos(ang + spread) * aLen;
+                        const a2y = ty - Math.sin(ang + spread) * aLen;
+
+                        return {
+                            d: `M ${sx.toFixed(1)} ${sy.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)}`,
+                            arrowD: `M ${a1x.toFixed(1)} ${a1y.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} L ${a2x.toFixed(1)} ${a2y.toFixed(1)}`,
+                        };
+                    });
+
+                    const svgCursorClass = computed(() => {
+                        if (dragState.value) return "cursor-grabbing";
+                        if (activeTool.value === "edge")
+                            return "cursor-crosshair";
+                        if (activeTool.value === "erase")
+                            return "cursor-not-allowed";
+                        return "cursor-default";
+                    });
+
+                    const stepBadgeClass = computed(() => {
+                        const t = currentStep.value.type;
+                        if (t === "DONE")
+                            return "bg-[#DCFCE7] text-[#1E6B40] border-[#2E8B57]/40";
+                        if (t === "PATH" || t === "AUGMENT")
+                            return "bg-[#FEF3C7] text-[#B45309] border-[#E59A00]/45";
+                        if (t === "BF_PASS")
+                            return "bg-[#DCFCE7]/75 text-[#1E6B40] border-[#2E8B57]/35";
+                        return "bg-[#FAF9F5] text-[#1F2328] border-[#DFDACD]";
+                    });
+
+                    function markerColor(type) {
+                        if (type === "DONE") return "bg-[#2E8B57]";
+                        if (type === "PATH" || type === "AUGMENT")
+                            return "bg-[#E59A00]";
+                        if (type === "BF_PASS") return "bg-[#2B7FFF]";
+                        return "bg-[#1F2328]";
+                    }
+
+                    /* --- Graph State & Undo Helpers --- */
+                    function cloneGraph() {
+                        return {
+                            nodes: nodes.value.map((n) => ({ ...n })),
+                            edges: edges.value.map((e) => ({ ...e })),
+                        };
+                    }
+
+                    function pushUndo(snapshot = null) {
+                        undoStack.value.push(snapshot || cloneGraph());
+                        if (undoStack.value.length > 40)
+                            undoStack.value.shift();
+                    }
+
+                    function undo() {
+                        if (!undoStack.value.length) return;
+                        stopPlay();
+                        finishAllPointerOps();
+                        capEditor.value = null;
+                        pendingEdgeOriginId.value = null;
+                        const snap = undoStack.value.pop();
+                        nodes.value = snap.nodes;
+                        edges.value = snap.edges;
+                        clampStep();
+                    }
+
+                    function clampStep() {
+                        if (stepIndex.value >= steps.value.length) {
+                            stepIndex.value = Math.max(
+                                0,
+                                steps.value.length - 1,
+                            );
+                        }
+                    }
+
+                    function loadPreset(key) {
+                        stopPlay();
+                        finishAllPointerOps();
+                        capEditor.value = null;
+                        pendingEdgeOriginId.value = null;
+                        const p = PRESETS[key] || PRESETS.reroute;
+                        presetKey.value = key;
+                        nodes.value = p.nodes.map((n) => ({ ...n }));
+                        edges.value = p.edges.map((e) => ({ ...e }));
+                        undoStack.value = [];
+                        stepIndex.value = 0;
+                    }
+
+                    function resetPreset() {
+                        loadPreset(presetKey.value);
+                    }
+
+                    function setTool(id) {
+                        activeTool.value = id;
+                        capEditor.value = null;
+                        pendingEdgeOriginId.value = null;
+                        connectState.value = null;
+                    }
+
+                    /* --- Graph Mutations --- */
+                    function addNodeAt(x, y) {
+                        pushUndo();
+                        const used = new Set(nodes.value.map((n) => n.label));
+                        const chars = "abcdefghijklmnpqruvwxyz".split("");
+                        const label =
+                            chars.find((c) => !used.has(c)) ||
+                            `v${nodes.value.length}`;
+                        const newNode = {
+                            id: label,
+                            label,
+                            x: Math.round(clamp(x, MARGIN, VB_W - MARGIN)),
+                            y: Math.round(clamp(y, MARGIN, VB_H - MARGIN)),
+                            role: "normal",
+                        };
+                        const sinkIdx = nodes.value.findIndex(
+                            (n) => n.role === "sink",
+                        );
+                        if (sinkIdx >= 0)
+                            nodes.value.splice(sinkIdx, 0, newNode);
+                        else nodes.value.push(newNode);
+                        clampStep();
+                    }
+
+                    function createEdge(u, v) {
+                        if (!u || !v || u === v) return;
+                        if (edges.value.some((e) => e.u === u && e.v === v))
+                            return;
+                        pushUndo();
+                        edges.value.push({
+                            id: `e_${Date.now()}_${edgeSeq++}`,
+                            u,
+                            v,
+                            cap: 6,
+                        });
+                        clampStep();
+                    }
+
+                    function deleteNode(id) {
+                        const target = nodes.value.find((n) => n.id === id);
+                        if (
+                            !target ||
+                            target.role === "source" ||
+                            target.role === "sink"
+                        )
+                            return;
+                        pushUndo();
+                        nodes.value = nodes.value.filter((n) => n.id !== id);
+                        edges.value = edges.value.filter(
+                            (e) => e.u !== id && e.v !== id,
+                        );
+                        capEditor.value = null;
+                        clampStep();
+                    }
+
+                    function deleteEdge(id) {
+                        pushUndo();
+                        edges.value = edges.value.filter((e) => e.id !== id);
+                        if (capEditor.value?.edgeId === id)
+                            capEditor.value = null;
+                        clampStep();
+                    }
+
+                    /* --- Bulletproof Global Pointer Drag & Edge Connect --- */
+                    function findSnapNode(svgX, svgY, excludeId) {
+                        const maxDist = NODE_R + 12;
+                        let best = null;
+                        let bestDist = Infinity;
+                        for (const n of nodes.value) {
+                            if (n.id === excludeId) continue;
+                            const d = Math.hypot(n.x - svgX, n.y - svgY);
+                            if (d <= maxDist && d < bestDist) {
+                                bestDist = d;
+                                best = n.id;
+                            }
+                        }
+                        return best;
+                    }
+
+                    function finishAllPointerOps() {
+                        if (dragState.value) {
+                            if (dragState.value.moved) {
+                                pushUndo(dragState.value.preSnapshot);
+                            }
+                            dragState.value = null;
+                        }
+                        if (connectState.value) {
+                            connectState.value = null;
+                        }
+                        scrubbingTimeline.value = false;
+                    }
+
+                    function onSvgBgPointerDown() {
+                        capEditor.value = null;
+                        pendingEdgeOriginId.value = null;
+                    }
+
+                    function onSvgDblClick(ev) {
+                        if (
+                            ev.target.closest(".node-hit") ||
+                            ev.target.closest(".edge-hit")
+                        )
+                            return;
+                        const svgEl = ev.currentTarget;
+                        const pt = clientToSvg(svgEl, ev.clientX, ev.clientY);
+                        addNodeAt(pt.x, pt.y);
+                    }
+
+                    function onNodePointerDown(ev, node) {
+                        ev.preventDefault();
+                        capEditor.value = null;
+
+                        // Erase tool
+                        if (activeTool.value === "erase") {
+                            deleteNode(node.id);
+                            return;
+                        }
+
+                        const svgEl = ev.currentTarget.ownerSVGElement;
+                        if (!svgEl) return;
+                        const pt = clientToSvg(svgEl, ev.clientX, ev.clientY);
+
+                        // Edge tool OR Shift+drag in Move tool -> begin edge connection
+                        if (
+                            activeTool.value === "edge" ||
+                            (activeTool.value === "move" && ev.shiftKey)
+                        ) {
+                            connectState.value = {
+                                originId: node.id,
+                                svgEl,
+                                cursorX: pt.x,
+                                cursorY: pt.y,
+                                snapNodeId: null,
+                                startClientX: ev.clientX,
+                                startClientY: ev.clientY,
+                                dragged: false,
+                            };
+                            return;
+                        }
+
+                        // Move tool -> begin exact offset-preserved node drag
+                        pendingEdgeOriginId.value = null;
+                        dragState.value = {
+                            nodeId: node.id,
+                            svgEl,
+                            offsetX: pt.x - node.x,
+                            offsetY: pt.y - node.y,
+                            startClientX: ev.clientX,
+                            startClientY: ev.clientY,
+                            moved: false,
+                            preSnapshot: cloneGraph(),
+                        };
+                    }
+
+                    function onGlobalPointerMove(ev) {
+                        // Failsafe: if button was released outside browser/iframe, end all active drags immediately
+                        if (
+                            ev.buttons === 0 &&
+                            (dragState.value ||
+                                connectState.value ||
+                                scrubbingTimeline.value)
+                        ) {
+                            finishAllPointerOps();
+                            return;
+                        }
+
+                        // 1. Timeline scrubbing
+                        if (scrubbingTimeline.value) {
+                            scrubToClientX(ev.clientX);
+                            return;
+                        }
+
+                        // 2. Active node drag (exact getScreenCTM().inverse() mapping + grab offset)
+                        if (dragState.value) {
+                            const ds = dragState.value;
+                            if (
+                                !ds.moved &&
+                                Math.hypot(
+                                    ev.clientX - ds.startClientX,
+                                    ev.clientY - ds.startClientY,
+                                ) > 2.5
+                            ) {
+                                ds.moved = true;
+                            }
+                            const pt = clientToSvg(
+                                ds.svgEl,
+                                ev.clientX,
+                                ev.clientY,
+                            );
+                            const target = nodes.value.find(
+                                (n) => n.id === ds.nodeId,
+                            );
+                            if (target) {
+                                target.x = clamp(
+                                    pt.x - ds.offsetX,
+                                    MARGIN,
+                                    VB_W - MARGIN,
+                                );
+                                target.y = clamp(
+                                    pt.y - ds.offsetY,
+                                    MARGIN,
+                                    VB_H - MARGIN,
+                                );
+                            }
+                            return;
+                        }
+
+                        // 3. Active edge connection drag
+                        if (connectState.value) {
+                            const cs = connectState.value;
+                            if (
+                                !cs.dragged &&
+                                Math.hypot(
+                                    ev.clientX - cs.startClientX,
+                                    ev.clientY - cs.startClientY,
+                                ) > 5
+                            ) {
+                                cs.dragged = true;
+                            }
+                            const pt = clientToSvg(
+                                cs.svgEl,
+                                ev.clientX,
+                                ev.clientY,
+                            );
+                            cs.cursorX = clamp(pt.x, 8, VB_W - 8);
+                            cs.cursorY = clamp(pt.y, 8, VB_H - 8);
+                            cs.snapNodeId = findSnapNode(
+                                pt.x,
+                                pt.y,
+                                cs.originId,
+                            );
+                        }
+                    }
+
+                    function onGlobalPointerUp(ev) {
+                        if (scrubbingTimeline.value) {
+                            scrubbingTimeline.value = false;
+                        }
+
+                        if (dragState.value) {
+                            if (dragState.value.moved) {
+                                pushUndo(dragState.value.preSnapshot);
+                            }
+                            dragState.value = null;
+                        }
+
+                        if (connectState.value) {
+                            const cs = connectState.value;
+                            const pt = clientToSvg(
+                                cs.svgEl,
+                                ev.clientX,
+                                ev.clientY,
+                            );
+                            const targetId =
+                                findSnapNode(pt.x, pt.y, cs.originId) ||
+                                cs.snapNodeId;
+
+                            if (targetId && targetId !== cs.originId) {
+                                createEdge(cs.originId, targetId);
+                                pendingEdgeOriginId.value = null;
+                            } else if (
+                                !cs.dragged &&
+                                activeTool.value === "edge"
+                            ) {
+                                // Seamless click-source -> click-target support in Edge mode
+                                if (
+                                    pendingEdgeOriginId.value &&
+                                    pendingEdgeOriginId.value !== cs.originId
+                                ) {
+                                    createEdge(
+                                        pendingEdgeOriginId.value,
+                                        cs.originId,
+                                    );
+                                    pendingEdgeOriginId.value = null;
+                                } else if (
+                                    pendingEdgeOriginId.value === cs.originId
+                                ) {
+                                    pendingEdgeOriginId.value = null;
+                                } else {
+                                    pendingEdgeOriginId.value = cs.originId;
+                                }
+                            }
+                            connectState.value = null;
+                        }
+                    }
+
+                    function onGlobalPointerCancel() {
+                        finishAllPointerOps();
+                    }
+
+                    function onGlobalBlur() {
+                        finishAllPointerOps();
+                    }
+
+                    /* --- Inline Edge Capacity Popover (clamped inside canvas) --- */
+                    function openCapEditor(ev, edge) {
+                        const wrap = canvasWrapRef.value;
+                        if (!wrap) return;
+                        const rect = wrap.getBoundingClientRect();
+                        const relX = ev.clientX - rect.left;
+                        const relY = ev.clientY - rect.top;
+                        capEditor.value = {
+                            edgeId: edge.id,
+                            u: edge.u,
+                            v: edge.v,
+                            cap: edge.cap,
+                            x: clamp(
+                                relX,
+                                118,
+                                Math.max(118, rect.width - 118),
+                            ),
+                            y: clamp(relY, 64, Math.max(64, rect.height - 22)),
+                        };
+                        nextTick(() => {
+                            if (capInputRef.value) {
+                                capInputRef.value.focus();
+                                capInputRef.value.select();
+                            }
+                        });
+                    }
+
+                    function onEdgeClick(ev, edge) {
+                        if (activeTool.value === "erase") {
+                            deleteEdge(edge.id);
+                            return;
+                        }
+                        openCapEditor(ev, edge);
+                    }
+
+                    function onResidualEdgeClick(ev, re) {
+                        const orig = edges.value.find(
+                            (e) => e.id === re.edgeId,
+                        );
+                        if (!orig) return;
+                        if (activeTool.value === "erase") {
+                            deleteEdge(orig.id);
+                            return;
+                        }
+                        openCapEditor(ev, orig);
+                    }
+
+                    function onEdgeWheel(ev, edge) {
+                        const delta = ev.deltaY < 0 ? 1 : -1;
+                        const target = edges.value.find(
+                            (e) => e.id === edge.id,
+                        );
+                        if (!target) return;
+                        const next = clamp(target.cap + delta, 1, 99);
+                        if (next !== target.cap) {
+                            target.cap = next;
+                            if (capEditor.value?.edgeId === edge.id)
+                                capEditor.value.cap = next;
+                            clampStep();
+                        }
+                    }
+
+                    function setCap(raw) {
+                        if (!capEditor.value) return;
+                        const val = clamp(parseInt(raw, 10) || 1, 1, 99);
+                        const target = edges.value.find(
+                            (e) => e.id === capEditor.value.edgeId,
+                        );
+                        if (target && target.cap !== val) {
+                            pushUndo();
+                            target.cap = val;
+                            capEditor.value.cap = val;
+                            clampStep();
+                        }
+                    }
+
+                    function nudgeCap(delta) {
+                        if (!capEditor.value) return;
+                        setCap(capEditor.value.cap + delta);
+                    }
+
+                    /* --- Playback & Timeline Scrubbing --- */
+                    function stopPlay() {
+                        isPlaying.value = false;
+                        clearTimeout(playTimer);
+                    }
+
+                    function scheduleTick() {
+                        clearTimeout(playTimer);
+                        if (!isPlaying.value) return;
+                        const delay = playSpeed.value === 2 ? 460 : 920;
+                        playTimer = setTimeout(() => {
+                            if (stepIndex.value < steps.value.length - 1) {
+                                stepIndex.value++;
+                                scheduleTick();
+                            } else {
+                                stopPlay();
+                            }
+                        }, delay);
+                    }
+
+                    function togglePlay() {
+                        if (isPlaying.value) {
+                            stopPlay();
+                        } else {
+                            if (stepIndex.value >= steps.value.length - 1)
+                                stepIndex.value = 0;
+                            isPlaying.value = true;
+                            scheduleTick();
+                        }
+                    }
+
+                    function toggleSpeed() {
+                        playSpeed.value = playSpeed.value === 1 ? 2 : 1;
+                        if (isPlaying.value) scheduleTick();
+                    }
+
+                    function stepForward() {
+                        stopPlay();
+                        if (stepIndex.value < steps.value.length - 1)
+                            stepIndex.value++;
+                    }
+
+                    function stepBack() {
+                        stopPlay();
+                        if (stepIndex.value > 0) stepIndex.value--;
+                    }
+
+                    function jumpStep(idx) {
+                        stopPlay();
+                        stepIndex.value = clamp(
+                            idx,
+                            0,
+                            Math.max(0, steps.value.length - 1),
+                        );
+                    }
+
+                    function scrubToClientX(clientX) {
+                        const el = timelineRef.value;
+                        if (!el || steps.value.length <= 1) return;
+                        const rect = el.getBoundingClientRect();
+                        const ratio = clamp(
+                            (clientX - rect.left) / Math.max(1, rect.width),
+                            0,
+                            1,
+                        );
+                        stepIndex.value = Math.round(
+                            ratio * (steps.value.length - 1),
+                        );
+                    }
+
+                    function onTimelinePointerDown(ev) {
+                        ev.preventDefault();
+                        stopPlay();
+                        scrubbingTimeline.value = true;
+                        scrubToClientX(ev.clientX);
+                    }
+
+                    /* --- Global Keyboard & Outside Click --- */
+                    function onKeyDown(ev) {
+                        if (
+                            ev.target.tagName === "INPUT" ||
+                            ev.target.tagName === "SELECT"
+                        )
+                            return;
+                        if (
+                            (ev.metaKey || ev.ctrlKey) &&
+                            ev.key.toLowerCase() === "z"
+                        ) {
+                            ev.preventDefault();
+                            undo();
+                            return;
+                        }
+                        if (ev.code === "Space") {
+                            ev.preventDefault();
+                            togglePlay();
+                        } else if (ev.key === "ArrowRight") {
+                            ev.preventDefault();
+                            stepForward();
+                        } else if (ev.key === "ArrowLeft") {
+                            ev.preventDefault();
+                            stepBack();
+                        } else if (ev.key === "1") {
+                            setTool("move");
+                        } else if (ev.key === "2") {
+                            setTool("edge");
+                        } else if (ev.key === "3") {
+                            setTool("erase");
+                        } else if (ev.key.toLowerCase() === "c") {
+                            showCut.value = !showCut.value;
+                        } else if (ev.key === "Escape") {
+                            capEditor.value = null;
+                            pendingEdgeOriginId.value = null;
+                            finishAllPointerOps();
+                        }
+                    }
+
+                    function onWindowClick(ev) {
+                        if (
+                            capEditor.value &&
+                            capPopoverRef.value &&
+                            !capPopoverRef.value.contains(ev.target)
+                        ) {
+                            capEditor.value = null;
+                        }
+                    }
+
+                    onMounted(() => {
+                        loadPreset("reroute");
+                        window.addEventListener(
+                            "pointermove",
+                            onGlobalPointerMove,
+                        );
+                        window.addEventListener("pointerup", onGlobalPointerUp);
+                        window.addEventListener(
+                            "pointercancel",
+                            onGlobalPointerCancel,
+                        );
+                        window.addEventListener("blur", onGlobalBlur);
+                        window.addEventListener("keydown", onKeyDown);
+                        window.addEventListener("click", onWindowClick);
+                    });
+
+                    onUnmounted(() => {
+                        stopPlay();
+                        window.removeEventListener(
+                            "pointermove",
+                            onGlobalPointerMove,
+                        );
+                        window.removeEventListener(
+                            "pointerup",
+                            onGlobalPointerUp,
+                        );
+                        window.removeEventListener(
+                            "pointercancel",
+                            onGlobalPointerCancel,
+                        );
+                        window.removeEventListener("blur", onGlobalBlur);
+                        window.removeEventListener("keydown", onKeyDown);
+                        window.removeEventListener("click", onWindowClick);
+                    });
+
+                    return {
+                        NODE_R,
+                        presetList,
+                        tools,
+                        presetKey,
+                        nodes,
+                        edges,
+                        viewMode,
+                        activeTool,
+                        showCut,
+                        showDistPopover,
+                        stepIndex,
+                        isPlaying,
+                        playSpeed,
+                        undoStack,
+                        hoveredEdgeId,
+                        pendingEdgeOriginId,
+                        connectState,
+                        capEditor,
+                        canvasWrapRef,
+                        capPopoverRef,
+                        capInputRef,
+                        timelineRef,
+                        steps,
+                        currentStep,
+                        finalMaxFlow,
+                        finalMinCut,
+                        minCutEquationTerms,
+                        roundDeltas,
+                        timelineProgressPct,
+                        cutVisual,
+                        flowRenderEdges,
+                        residualRenderEdges,
+                        renderNodes,
+                        connectPreview,
+                        svgCursorClass,
+                        stepBadgeClass,
+                        markerColor,
+                        loadPreset,
+                        resetPreset,
+                        setTool,
+                        undo,
+                        onSvgBgPointerDown,
+                        onSvgDblClick,
+                        onNodePointerDown,
+                        onEdgeClick,
+                        onResidualEdgeClick,
+                        onEdgeWheel,
+                        setCap,
+                        nudgeCap,
+                        deleteEdge,
+                        togglePlay,
+                        toggleSpeed,
+                        stepForward,
+                        stepBack,
+                        jumpStep,
+                        onTimelinePointerDown,
+                    };
+                },
+            }).mount("#app");
+        </script>
+    </body>
+</html>
