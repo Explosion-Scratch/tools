@@ -1,5 +1,9 @@
+<script>
+	import { base } from '$app/paths';
+</script>
+
 <div class="wrap">
-	<iframe src="./bellman-ford-visualizer.html" title="Bellman Ford algorithm visualizer" />
+	<iframe src="{base}/bellman-ford-visualizer.html" title="Bellman Ford algorithm visualizer" />
 </div>
 
 <style>
